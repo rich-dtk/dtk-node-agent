@@ -1,0 +1,5 @@
+use as base dir /usr/libexec/mcollective/mcollective/ instead as
+from ubuntu /usr/share/mcollective/plugins/mcollective/
+
+use as base dir /usr/local/rvm/gems/ruby-1.8.7-p358/gems/puppet-2.7.10/lib/puppet/indirector
+frm ubuntu /var/lib/puppet/lib/puppet/indirector
