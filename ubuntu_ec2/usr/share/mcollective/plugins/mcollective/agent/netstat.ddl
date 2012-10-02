@@ -5,3 +5,10 @@ metadata  :name        => "DTK Netstat Agent",
           :version     => "",
           :url         => "",
           :timeout     => 0
+
+action "nltpu", :description => "Runts netstat command on given node with flag 'nltpu'" do
+  display :always
+
+  output  :data => "Returns array of hash maps each representing one process with it's details.",
+          :time => "Time stamp when the response was sent."
+end
