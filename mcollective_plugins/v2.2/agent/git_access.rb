@@ -3,12 +3,10 @@ module MCollective
     class Git_access < RPC::Agent
       action "add_rsa_info" do 
         SSH_FOLDER_PATH = '/root/.ssh'
-
-
+        RequiredParams = [:agent_ssh_key_public, :agent_ssh_key_private, :server_ssh_rsa_fingerprint]
         def validate_request(req)
-          required_params = [:agent_ssh_key_public, :agent_ssh_key_private, :server_ssh_key_public, :server_hostname ]
           missing_params  = []
-          required_params.each do |param|
+          RequiredParams.each do |param|
             missing_params << param if req[param].nil?
           end
 
@@ -37,11 +35,11 @@ module MCollective
           File.open(rsa_path,"w",0600){|f|f.print request[:agent_ssh_key_private]}
           File.open(rsa_pub_path,"w"){|f|f.print request[:agent_ssh_key_public]}
           #create or append
-          File.open(known_hosts,"a"){|f|f.print "#{request[:server_hostname]} ssh-rsa #{request[:server_ssh_key_public]}"}
+          File.open(known_hosts,"a"){|f|f.print request[:server_ssh_rsa_fingerprint]}
           
-          reply.data   = { :status => 'OK', :message => "Public/Private keys added successfully."}
+          reply.data   = { :status => :succeeded}
         rescue Exception => e
-          reply.data   = { :status => 'FAILED', :message => e.message}
+          reply.data   = { :status => :failed, :error => {:message => e.message}}
         end
       end
     end
