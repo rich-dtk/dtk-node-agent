@@ -31,7 +31,7 @@ module MCollective
           error_response = {
             :status => :failed, 
             :error => {
-              :formatted_exception => error_msg
+              :message => error_msg
             },
             :pbuilderid => pbuilderid
           }

@@ -46,7 +46,7 @@ module MCollective
           more_generic_response.set_status_failed!()
           error_info = {
             :error => {
-              :formatted_exception => e.inspect
+              :message => e.inspect
             }
           }
           more_generic_response.merge!(error_info)
@@ -95,7 +95,7 @@ module MCollective
           ret.set_status_failed!()
           error_info = {
             :error => {
-              :formatted_exception => e.inspect
+              :message => e.inspect
             }
           }
           ret.merge!(error_info)
@@ -170,7 +170,7 @@ module MCollective
           ret.set_status_failed!()
           error_info = {
             :error => {
-              :formatted_exception => e.inspect
+              :message => e.inspect
             }
           }
           ret.merge!(error_info)
