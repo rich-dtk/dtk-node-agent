@@ -2,11 +2,17 @@ module MCollective
   module Agent
     class Git_access < RPC::Agent
       action "add_rsa_info" do 
-        SSH_FOLDER_PATH = '/root/.ssh'
-        RequiredParams = [:agent_ssh_key_public, :agent_ssh_key_private, :server_ssh_rsa_fingerprint]
+        ssh_folder_path = '/root/.ssh'
+        rsa_path     = "#{ssh_folder_path}/id_rsa"
+        rsa_pub_path = "#{ssh_folder_path}/id_rsa.pub"
+        known_hosts  = "#{ssh_folder_path}/known_hosts"
+
+
+        #TODO: move to using mcollective vallidation on ddl
         def validate_request(req)
+          required_params = [:agent_ssh_key_public, :agent_ssh_key_private, :server_ssh_rsa_fingerprint]
           missing_params  = []
-          RequiredParams.each do |param|
+          required_params.each do |param|
             missing_params << param if req[param].nil?
           end
 
@@ -16,27 +22,43 @@ module MCollective
         end
 
         begin
-          rsa_path     = "#{SSH_FOLDER_PATH}/id_rsa"
-          rsa_pub_path = "#{SSH_FOLDER_PATH}/id_rsa.pub"
-          known_hosts  = "#{SSH_FOLDER_PATH}/known_hosts"
-
-          # fails if these files already exists
-          if File.exists?(rsa_path)
-            raise "File #{rsa_path} already exists"
-          end
-          if File.exists?(rsa_pub_path)
-            raise "File #{rsa_pub_path} already exists"
-          end
-
           # validate request
           validate_request(request)
 
-          # create files 
-          File.open(rsa_path,"w",0600){|f|f.print request[:agent_ssh_key_private]}
-          File.open(rsa_pub_path,"w"){|f|f.print request[:agent_ssh_key_public]}
-          #create or append
-          File.open(known_hosts,"a"){|f|f.print request[:server_ssh_rsa_fingerprint]}
-          
+          # fails if these files already exists and content differs
+          if File.exists?(rsa_path)
+            existing_rsa = File.open(rsa_path).read
+            if existing_rsa == request[:agent_ssh_key_private]
+              # create private key file
+              File.open(rsa_path,"w",0600){|f|f.print request[:agent_ssh_key_private]}
+            else
+              raise "RSA private key already exists and differs from one in payload"
+            end
+          end
+          if File.exists?(rsa_pub_path)
+            existing_rsa_pub = File.open(rsa_pub_path).read
+            if existing_rsa_pub == request[:agent_ssh_key_public]
+              # create public key file
+              File.open(rsa_pub_path,"w"){|f|f.print request[:agent_ssh_key_public]}
+            else
+              raise "RSA public key already exists and differs from one in payload"
+            end
+          end
+
+          #create or append if key not there
+          skip = nil
+          fp = request[:server_ssh_rsa_fingerprint]
+          if File.exists?(known_hosts)
+            fp_key = (fp =~ Regexp.new("(^[^=]+)=");$1)
+            if fp_key
+              fp_key_regexp =  Regexp.new("^#{fp_key}")
+              skip = !!File.open(known_hosts){|f|f.find{|line|line =~ fp_key_regexp}} 
+            end
+          end
+          unless skip
+            File.open(known_hosts,"a"){|f|f.print request[:server_ssh_rsa_fingerprint]}
+          end
+
           reply.data   = { :status => :succeeded}
         rescue Exception => e
           reply.data   = { :status => :failed, :error => {:message => e.message}}
