@@ -33,6 +33,7 @@ module MCollective
       def run_action
         #validate :components_with_attributes
         #validate :version_context
+	#validate :node_manifest
 
         validate :task_id, Fixnum
         validate :top_task_id, Fixnum
@@ -48,7 +49,7 @@ module MCollective
         begin
           response = pull_recipes(request[:version_context])
           return set_reply!(response) if response.failed?()
-          puppet_run_response = run(request[:components_with_attributes])
+          puppet_run_response = run(request)
         rescue Exception => e
           more_generic_response.set_status_failed!()
           error_info = {
@@ -114,7 +115,10 @@ module MCollective
         ret 
       end
 
-      def run(cmps_with_attrs)
+      def run(request)
+ 	cmps_with_attrs = request[:components_with_attributes]
+ 	node_manifest = request[:node_manifest]
+
         clean_state()
         ret = nil
         log_file_path = log_file_path()
@@ -128,7 +132,7 @@ module MCollective
           File.delete(most_recent_link) if File.exists? most_recent_link
           File.symlink(log_file_path,most_recent_link)
 
-          execute_lines = ret_execute_lines(cmps_with_attrs)
+          execute_lines = node_manifest || ret_execute_lines(cmps_with_attrs)
           execute_string = execute_lines.join("\n")
           @log.info("\n----------------execute_string------------\n#{execute_string}\n----------------execute_string------------")
           File.open("/tmp/site.pp","w"){|f| f << execute_string}
