@@ -3,7 +3,7 @@
 /etc/init.d/mcollective stop
 base_dir=`dirname "$0"`
 
-echo "basedir = ${base_dir}"
+echo "temporarily commented out update to facts.yaml and server.cfg to keep server addr nailed"
 #cat ${base_dir}/clean/etc/mcollective/facts.yaml > /etc/mcollective/facts.yaml
 #cat ${base_dir}/clean/etc/mcollective/server.cfg > /etc/mcollective/server.cfg
 
