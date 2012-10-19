@@ -1,6 +1,6 @@
 #!/bin/sh
 #TODO: clean up;ceomplete hack
-/etc/init.d/mcolelctive stop
+/etc/init.d/mcollective stop
 base_dir=`dirname "$0"`
 
 echo "basedir = ${base_dir}"
