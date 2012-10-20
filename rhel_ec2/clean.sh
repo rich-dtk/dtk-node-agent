@@ -1,5 +1,5 @@
 #!/bin/sh
-#TODO: clean up;ceomplete hack
+#TODO: clean up;complete hack
 /etc/init.d/mcollective stop
 base_dir=`dirname "$0"`
 
@@ -7,8 +7,13 @@ echo "temporarily commented out update to facts.yaml and server.cfg to keep serv
 #cat ${base_dir}/clean/etc/mcollective/facts.yaml > /etc/mcollective/facts.yaml
 #cat ${base_dir}/clean/etc/mcollective/server.cfg > /etc/mcollective/server.cfg
 
-cd /root/.ssh; rm id_rsa id_rsa.pub known_hosts 
-
 rm -r /etc/puppet/modules/*
+cp -r ${base_dir}/../src/etc/puppet/modules/r8 /etc/puppet/modules/
+
 rm /var/log/mcollective.log
 rm /var/log/puppet/*
+
+rm /root/.ssh/id_rsa
+rm /root/.ssh/id_rsa.pub 
+rm /root/.ssh/known_hosts 
+
