@@ -17,6 +17,13 @@ ModulePath =  "/etc/puppet/modules"
 module MCollective
   module Agent
     class Puppet_apply < RPC::Agent
+      metadata    :name        => "run puppet actions",
+                  :description => "Agent to initiate Puppet apply runs",
+                  :author      => "Reactor8",
+                  :license     => "",
+                  :version     => "",
+                  :url         => "",
+                  :timeout     => 600
       def initialize()
         super()
         @log = Log.instance

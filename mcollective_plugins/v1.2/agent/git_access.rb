@@ -1,6 +1,13 @@
 module MCollective
   module Agent
     class Git_access < RPC::Agent
+      metadata    :name        => "git access",
+                  :description => "Agent to enable git access",
+                  :author      => "Reactor8",
+                  :license     => "",
+                  :version     => "",
+                  :url         => "",
+                  :timeout     => 20
       action "add_rsa_info" do 
         ssh_folder_path = '/root/.ssh'
         rsa_path     = "#{ssh_folder_path}/id_rsa"
