@@ -4,6 +4,6 @@ metadata    :name        => "netstat info",
             :license     => "",
             :version     => "",
             :url         => "",
-            :timeout     => 10
+            :timeout     => 2
 action "get_tcp_udp", :description => "get tcp and udp info" do
 end

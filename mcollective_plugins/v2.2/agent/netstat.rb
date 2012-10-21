@@ -1,6 +1,13 @@
 module MCollective
   module Agent
     class Netstat < RPC::Agent
+      metadata    :name        => "netstat info",
+                  :description => "Agent to get netstat info",
+                  :author      => "Reactor8",
+                  :license     => "",
+                  :version     => "",
+                  :url         => "",
+                  :timeout     => 2
       action "get_tcp_udp" do 
         output = `netstat -nltpu`
         results = output.scan(/(^[a-z0-9]+)\s+(\d)\s+(\d)\s+([0-9:.*]+)\s+([0-9:.*]+)\s+(LISTEN)?\s+([0-9a-zA-Z\/\-: ]+)/m)
@@ -19,7 +26,8 @@ module MCollective
         end
 
         reply[:data]  = netstat_result
-        reply[:time] = Time.now.to_s
+        reply[:pbuilderid] = Facts["pbuilderid"]
+        reply[:status] = :ok
       end
     end
   end
