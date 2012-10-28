@@ -336,7 +336,7 @@ module MCollective
           elsif dyn_attr[:type] == "default_variable"
             dynamic_attr_response_el__default_attribute(cmp_name,dyn_attr)
           else #assumption only three types: "exported_resource", "default_attribute, (and other can by "dynamic")
-            dynamic_attr_response_el__dynamic(cmp_name,dyn_attr)
+            dynamic_attr_response_el__default_attribute(cmp_name,dyn_attr)||dynamic_attr_response_el__dynamic(cmp_name,dyn_attr)
           end
         if val
           ret = {
