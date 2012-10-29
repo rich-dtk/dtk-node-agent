@@ -1,6 +1,6 @@
 #!/bin/sh
 #TODO: clean up; complete hack
-echo "stop mcollective service"
+/etc/init.d/mcollective stop
 base_dir=`dirname "$0"`
 
 rm -r /etc/puppet/modules/*

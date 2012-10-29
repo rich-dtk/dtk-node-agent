@@ -27,9 +27,9 @@ module MCollective
         #validate :components_with_attributes
         #validate :version_context
 	#validate :node_manifest
+        #validate :task_id, Fixnum
+        #validate :top_task_id, Fixnum
 
-        validate :task_id, Fixnum
-        validate :top_task_id, Fixnum
         log_params()
         @reply_data = nil
         @msg_id = request.uniqid
