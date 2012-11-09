@@ -7,3 +7,5 @@ metadata    :name        => "tailing log",
             :timeout     => 2
 action "get_log", :description => "returns log content" do
 end
+action "grep", :description => "returns log content from multiple nodes" do
+end
