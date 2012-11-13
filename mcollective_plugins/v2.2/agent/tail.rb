@@ -40,20 +40,13 @@ module MCollective
             reply[:pbuilderid] = Facts["pbuilderid"]
             reply[:status] = :ok
             return
-          end
-
-          # returns total number of lines in file, one is to start next iteration with new line
-          last_line  = `wc -l #{request[:log_path]} | awk '{print $1}'`.to_i + 1
-          # if there is start line from CLI request we use it, if not we take last BATCH_SIZE_OF_LOG lines
-          start_line = last_line-BATCH_SIZE_OF_LOG
+          end          
           
           # returns needed lines
-          if (request[:grep_pattern].empty? || request[:grep_pattern].nil?)
-            output = `more #{request[:log_path]}`
-            # output = `tail -n +#{start_line} #{request[:log_path]}`
-          else
+          if (request[:stop_on_first_match].empty? || request[:stop_on_first_match].nil? || request[:stop_on_first_match].eql?('false'))
             output = `more #{request[:log_path]} | grep #{request[:grep_pattern]}`
-            # output = `tail -n +#{start_line} #{request[:log_path]} | grep #{request[:grep_pattern]}`
+          else
+            output = `more #{request[:log_path]} | grep #{request[:grep_pattern]} | tail -1`
           end
           reply[:data]      = { :output => output}
           reply[:pbuilderid] = Facts["pbuilderid"]
