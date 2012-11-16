@@ -308,12 +308,11 @@ module MCollective
       def process_dynamic_attributes?(cmps_with_attrs)
         ret = Array.new
         cmps_with_attrs.each do |cmp_with_attrs|
-          cmp_name = cmp_with_attrs["name"]
           dyn_attrs = cmp_with_attrs["dynamic_attributes"]
           if dyn_attrs and not dyn_attrs.empty?
-            resource_ref = resource_ref(cmp_with_attrs)
+            cmp_ref = component_ref(cmp_with_attrs)
             dyn_attrs.each do |dyn_attr|
-              if el = dynamic_attr_response_el(cmp_name,dyn_attr)
+              if el = dynamic_attr_response_el(cmp_ref,dyn_attr)
                 ret << el
               end
             end
@@ -435,15 +434,15 @@ module MCollective
         p[attr_name] = {"value" => val}.merge(context)
       end
 
-      def resource_ref(cmp_with_attrs)
+      def component_ref(cmp_with_attrs)
         case cmp_with_attrs["component_type"]
         when "class"
-          "Class[#{quote_form(cmp_with_attrs["name"])}]"
+          cmp_with_attrs["name"]
         when "definition"
           defn = cmp_with_attrs["name"]
-          def_name = (cmp_with_attrs["attributes"].find{|k,v|k == "name"}||[]).last
-          raise "Cannot find the name associated with definition #{defn}" unless def_name
-          "#{capitalize_resource_name(defn)}[#{quote_form(def_name)}]"
+          name_attr_val = (cmp_with_attrs["attributes"].find{|attr|attr["name"]}||{})["value"]
+          raise "Cannot find the name associated with definition #{defn}" unless name_attr_val
+          "#{cmp_with_attrs["name"]}[#{name_attr_val}]"
         else
           raise "Reference to type #{cmp_with_attrs["component_type"]} not treated"
         end
