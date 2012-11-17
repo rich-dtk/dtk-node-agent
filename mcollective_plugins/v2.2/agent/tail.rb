@@ -19,7 +19,7 @@ module MCollective
           # if there is start line from CLI request we use it, if not we take last BATCH_SIZE_OF_LOG lines
           start_line = (request[:start_line].empty? ? last_line-BATCH_SIZE_OF_LOG : request[:start_line])
           # returns needed lines
-          if (request[:grep_option].empty? || request[:grep_option].nil?)
+          if (request[:grep_option].nil? || request[:grep_option].empty?)
             output = `tail -n +#{start_line} #{request[:log_path]}`
           else
             output = `tail -n +#{start_line} #{request[:log_path]} | grep #{request[:grep_option]}`
