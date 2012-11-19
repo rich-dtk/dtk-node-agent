@@ -25,7 +25,7 @@ module MCollective
           end
           
           # returns needed lines
-          if (request[:grep_option].empty? || request[:grep_option].nil?)
+          if (request[:grep_option].nil? || request[:grep_option].empty?)
             output = `tail -n +#{start_line} #{request[:log_path]}`
           else
             output = `tail -n +#{start_line} #{request[:log_path]} | grep #{request[:grep_option]}`
