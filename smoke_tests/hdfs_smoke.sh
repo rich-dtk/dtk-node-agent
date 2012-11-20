@@ -1,32 +1,5 @@
 #!/usr/bin/env bash
 
-set -e
-
-# execute health check script
-# are all required services up and running
-# if not break a script
-
-## Health script TBD
-
-#check filesystem health
-hdfs fsck /
-
-#chek is root writable to all users - negative test
-hdfs dfs -mkdir /test
-[[ $? -ne "0" ]] && echo "[INFO] Passed!" && exit 0
-
-#check if user is created
-current_user=${whoami}
-hdfs dfs -ls /user/${current_user}
-[[ $? -ne "0" ]] && echo "[WARNING] User ${current_user} is not created properly" && exit 0
-
-
-
-
-
-
-#!/usr/bin/env bash
-
 #set -e
 
 # execute health check script
@@ -142,12 +115,12 @@ echo ""
         echo -e "|                                    HADOOP SMOKE TEST STATUS                                    |"
 if [[ "$hbase_status" -gt "10" ]];
 then
-        error_highlight "|[ERROR] HBase is not setup correctly.                                                         |"
+        error_highlight "|[ERROR] HDFS is not setup correctly.                                                         |"
         error_highlight "|[ERROR] Please check Your configuration and status of services                                |"
         echo -e "|                                                                                               |"
         echo -e "+-----------------------------------------------------------------------------------------------+"
 else
-		info_highlight "|[INFO] HBase smoke tests PASSED!                                                               |"
+		info_highlight "|[INFO] HDFS smoke tests PASSED!                                                               |"
         echo -e "|                                                                                               |"
         echo -e "+-----------------------------------------------------------------------------------------------+"
 fi
