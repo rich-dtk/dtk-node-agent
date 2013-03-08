@@ -7,8 +7,8 @@ base_dir="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # install all the necessary dependencies
 apt-get install -y ruby1.8 ruby1.8-dev build-essential libruby1.8-extras irb wget curl rubygems lsb-release
 
-# get OS codename
-osname=`lsb_release -d | | awk '{print $2}'`
+# get OS info
+osname=`lsb_release -d | awk '{print $2}'`
 codename=`lsb_release -c | awk '{print $2}'`
 
 # install puppet and gems
@@ -19,7 +19,7 @@ gem install grit stomp --no-rdoc --no-ri
 groupadd puppet
 
 # create puppet dirs
-mkdir -p /var/log/puppet
+mkdir -p {/var/log/puppet/lib/puppet/indirector/,/etc/puppet/modules}
 
 # download and add the official puppet labs apt repo
 wget http://apt.puppetlabs.com/puppetlabs-release-${codename}.deb
@@ -34,8 +34,10 @@ fi;
 apt-get install -y mcollective mcollective-client mcollective-common
 
 # copy puppet libs
-mkdir -p  /var/lib/puppet/lib/puppet/indirector/
 cp -rf ${base_dir}/puppet_additions/puppet_lib_base/puppet/indirector/* /var/lib/puppet/lib/puppet/indirector/
+
+# copy r8 puppet module
+cp -rf ${base_dir}/puppet_additions/modules/r8 /etc/puppet/modules
 
 # copy mcollective plugins
 cp -rf ${base_dir}/mcollective_additions/plugins/v${mcollective_version}/* /usr/share/mcollective/plugins/mcollective
