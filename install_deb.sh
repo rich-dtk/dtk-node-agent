@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
 # read the config file
-DIR="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-. ${DIR}/install.config
+base_dir="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+. ${base_dir}/install.config
 
 # install all the necessary dependencies
-apt-get install -y ruby1.8 ruby1.8-dev build-essential libruby1.8-extras irb wget curl rubygems1.8 lsb_release
+apt-get install -y ruby1.8 ruby1.8-dev build-essential libruby1.8-extras irb wget curl rubygems1.8 lsb-release
 
 # get OS codename
 osname=`lsb_release -d | | awk '{print $2}'`
@@ -25,22 +25,23 @@ mkdir -p /var/log/puppet
 wget http://apt.puppetlabs.com/puppetlabs-release-${codename}.deb
 if [[ $? -eq 0 ]]; then 
 	dpkg -i puppetlabs-release-${codename}.deb
+	apt-get update
 else
 	echo "Something went wrong while installing the Puppetlabs apt repo. Possible reason is this OS is not officially supported."
 fi;
 
 # install the latest version of mcollective
-apt-get install mcollective mcollective-client mcollective-common
+apt-get install -y mcollective mcollective-client mcollective-common
 
 # copy puppet libs
 mkdir -p  /var/lib/puppet/lib/puppet/indirector/
-cp -rf ${DIR}/puppet_additions/puppet_lib_base/puppet/indirector/* /var/lib/puppet/lib/puppet/indirector/
+cp -rf ${base_dir}/puppet_additions/puppet_lib_base/puppet/indirector/* /var/lib/puppet/lib/puppet/indirector/
 
 # copy mcollective plugins
-cp -rf ${DIR}/mcollective_additions/plugins/v${mcollective_version}/ /usr/share/mcollective/plugins
+cp -rf ${base_dir}/mcollective_additions/plugins/v${mcollective_version}/* /usr/share/mcollective/plugins/mcollective
 
 # copy mcollective config
-cp -f ${DIR}/mcollective_additions/server.cfg /etc/mcollective
+cp -f ${base_dir}/mcollective_additions/server.cfg /etc/mcollective
 
 # start the mcollective service
 service mcollective start
