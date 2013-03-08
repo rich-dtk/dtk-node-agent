@@ -18,6 +18,9 @@ gem install grit stomp --no-rdoc --no-ri
 # create puppet group
 groupadd puppet
 
+# create puppet dirs
+mkdir -p /var/log/puppet
+
 # download and add the official puppet labs apt repo
 wget http://apt.puppetlabs.com/puppetlabs-release-${codename}.deb
 if [[ $? -eq 0 ]]; then 
@@ -34,6 +37,10 @@ mkdir -p  /var/lib/puppet/lib/puppet/indirector/
 cp -rf ${DIR}/puppet_additions/puppet_lib_base/puppet/indirector/* /var/lib/puppet/lib/puppet/indirector/
 
 # copy mcollective plugins
-cp -rf /usr/share/mcollective/plugins
+cp -rf ${DIR}/mcollective_additions/plugins/v${mcollective_version}/ /usr/share/mcollective/plugins
 
-/ etc / mcollective
+# copy mcollective config
+cp -f ${DIR}/mcollective_additions/server.cfg /etc/mcollective
+
+# start the mcollective service
+service mcollective start
