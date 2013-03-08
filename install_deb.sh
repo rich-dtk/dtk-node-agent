@@ -5,7 +5,7 @@ base_dir="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . ${base_dir}/install.config
 
 # install all the necessary dependencies
-apt-get install -y ruby1.8 ruby1.8-dev build-essential libruby1.8-extras irb wget curl rubygems1.8 lsb-release
+apt-get install -y ruby1.8 ruby1.8-dev build-essential libruby1.8-extras irb wget curl rubygems lsb-release
 
 # get OS codename
 osname=`lsb_release -d | | awk '{print $2}'`
