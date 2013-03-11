@@ -47,3 +47,6 @@ cp -f ${base_dir}/mcollective_additions/server.cfg /etc/mcollective
 
 # start the mcollective service
 service mcollective start
+
+# enable ec2-run-user-data just to be sure
+update-rc.d ec2-run-user-data defaults
