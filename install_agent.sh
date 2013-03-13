@@ -19,7 +19,7 @@ elif [[ `which yum` ]]; then
 	yum install -y ruby rubygems
 	yum groupinstall -y "Development tools"
 	# install and enable cloud-init scripts on RHEL/Centos if not available
-	[[ ! -f /etc/init.d/ec2-run-user-data ]] && cp ${base_dir}/src/etc/init.d/ec2-run-user-data
+	[[ ! -f /etc/init.d/ec2-run-user-data ]] && cp ${base_dir}/src/etc/init.d/ec2-run-user-data /etc/init.d/
 	chkconfig --level 345 ec2-run-user-data on
 else
 	echo "Unsuported OS. Exiting now..."
