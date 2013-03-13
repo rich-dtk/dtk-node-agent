@@ -16,8 +16,8 @@ if [[ `which apt-get` ]]; then
 	# enable ec2-run-user-data just to be sure
 	[[ -f /etc/init.d/ec2-run-user-data ]] && update-rc.d ec2-run-user-data defaults
 elif [[ `which yum` ]]; then
-	yum install ruby rubygems
-	yum groupinstall "Development tools"
+	yum install -y ruby rubygems
+	yum groupinstall -y "Development tools"
 	# install and enable cloud-init scripts on RHEL/Centos if not available
 	[[ ! -f /etc/init.d/ec2-run-user-data ]] && cp ${base_dir}/src/etc/init.d/ec2-run-user-data
 	chkconfig --level 345 ec2-run-user-data on
