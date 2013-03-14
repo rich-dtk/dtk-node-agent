@@ -62,11 +62,11 @@ groupadd puppet
 mkdir -p {/var/log/puppet/,/var/lib/puppet/lib/puppet/indirector,/etc/puppet/modules,/usr/share/mcollective/plugins/mcollective}
 
 # install requried puppet modules
-puppet module install example42/mcollective
-puppet module install puppetlabs/ruby
+[[ ! -d /etc/puppet/modules/mcollective/ ]] && puppet module install example42/mcollective
+#puppet module install puppetlabs/ruby
 
 # install ruby and and collective via puppet
-puppet apply ${base_dir}/ruby.pp
+#puppet apply ${base_dir}/ruby.pp
 puppet apply ${base_dir}/mcollective.pp
 
 # copy puppet libs
