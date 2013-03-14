@@ -20,12 +20,13 @@ base_dir="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # check package manager used on the system and install appropriate packages/init scripts
 if [[ `which apt-get` ]]; then
+	apt-get update  --fix-missing
 	apt-get install -y ruby rubygems build-essential irb wget curl lsb-release
 	getosinfo
 	wget http://apt.puppetlabs.com/puppetlabs-release-${codename}.deb
 	if [[ $? -eq 0 ]]; then 
 		dpkg -i puppetlabs-release-${codename}.deb
-		apt-get update --fix-missing
+		apt-get update
 		rm puppetlabs-release-${codename}.deb
 	else
 		echo "Something went wrong while installing the Puppetlabs apt repo. Possible reason is this OS is not officially supported."
