@@ -78,7 +78,7 @@ cp -rf ${base_dir}/puppet_additions/modules/r8 /etc/puppet/modules
 
 # copy mcollective plugins
 cp -rf ${base_dir}/mcollective_additions/plugins/v${mcollective_version}/* /usr/share/mcollective/plugins/mcollective
-
+[[ -d /usr/libexec/mcollective/ ]] && cp -r /usr/libexec/mcollective/mcollective/* /usr/share/mcollective/plugins/mcollective
 # copy mcollective config
 cp -f ${base_dir}/mcollective_additions/server.cfg /etc/mcollective
 
