@@ -26,7 +26,7 @@ module MCollective
       def run_action
         #validate :components_with_attributes
         #validate :version_context
-	#validate :node_manifest
+  #validate :node_manifest
         #validate :task_id, Fixnum
         #validate :top_task_id, Fixnum
 
@@ -109,8 +109,12 @@ module MCollective
       end
 
       def run(request)
- 	cmps_with_attrs = request[:components_with_attributes]
- 	node_manifest = request[:node_manifest]
+        cmps_with_attrs = request[:components_with_attributes]
+        node_manifest = request[:node_manifest]
+
+        # Amar: Added task ID to current thread, so puppet apply can be canceled from puppet_cancel.rb when user requests cancel
+        task_id = request[:top_task_id]
+        Thread.current[:task_id] = task_id
 
         clean_state()
         ret = nil
@@ -179,6 +183,14 @@ module MCollective
           }
           ret.merge!(error_info)
          ensure
+          # Amar: If puppet_apply thread was killed from puppet_cancel, ':is_canceled' flag is set on the thread, 
+          # so puppet_apply can send status canceled in the response
+          if Thread.current[:is_canceled]
+            ret ||= Response.new()
+            @log.info("Setting cancel status...")
+            ret.set_status_canceled!()
+            return set_reply!(ret)
+          end
           if save_stderr #test if this is nil as to whether did the stderr swap
             $stderr = save_stderr
             stderr_capture.rewind
@@ -563,6 +575,9 @@ module MCollective
         end
         def set_status_succeeded!()
           self[:status] = :succeeded
+        end
+        def set_status_canceled!()
+          self[:status] = :canceled
         end
         def set_dynamic_attributes!(dynamic_attributes)
           self[:dynamic_attributes] = dynamic_attributes
