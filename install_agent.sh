@@ -6,23 +6,48 @@ if [ "$(whoami)" != "root" ]; then
 	exit 0
 fi
 
+# get OS info
+function getosinfo()
+{
+	export osname=`lsb_release -d | awk '{print $2}'`
+	export codename=`lsb_release -c | awk '{print $2}'`
+	export release=`lsb_release -r | awk '{print $2}'`
+}
+
 # read the config file
 base_dir="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . ${base_dir}/install.config
 
 # check package manager used on the system and install appropriate packages/init scripts
 if [[ `which apt-get` ]]; then
-	apt-get install -y ruby rubygems build-essential irb wget curl
+	apt-get install -y ruby rubygems build-essential irb wget curl lsb-release
+	getosinfo
+	wget http://apt.puppetlabs.com/puppetlabs-release-${codename}.deb
+	if [[ $? -eq 0 ]]; then 
+		dpkg -i puppetlabs-release-${codename}.deb
+		apt-get update --fix-missing
+		rm puppetlabs-release-${codename}.deb
+	else
+		echo "Something went wrong while installing the Puppetlabs apt repo. Possible reason is this OS is not officially supported."
+	fi;
 	# enable ec2-run-user-data just to be sure
 	[[ -f /etc/init.d/ec2-run-user-data ]] && update-rc.d ec2-run-user-data defaults
 elif [[ `which yum` ]]; then
-	yum install -y ruby rubygems
-	yum groupinstall -y "Development tools"
+	yum install ruby rubygems redhat-lsb
+	yum groupinstall "Development tools"
+	getosinfo
 	# install and enable cloud-init scripts on RHEL/Centos if not available
-	[[ ! -f /etc/init.d/ec2-run-user-data ]] && cp ${base_dir}/src/etc/init.d/ec2-run-user-data /etc/init.d/
+	[[ ! -f /etc/init.d/ec2-run-user-data ]] && cp ${base_dir}/src/etc/init.d/ec2-run-user-data
 	chkconfig --level 345 ec2-run-user-data on
+	if [[ ${release:0:1} == 5 ]]; then
+		rpm -ivh http://yum.puppetlabs.com/el/5/products/i386/puppetlabs-release-5-6.noarch.rpm
+	elif [[ ${release:0:1} == 6 ]]; then
+		rpm -ivh http://yum.puppetlabs.com/el/6/products/i386/puppetlabs-release-6-6.noarch.rpm
+	else
+		echo "Something went wrong while installing the Puppetlabs apt repo. Possible reason is this OS is not officially supported."
+	fi;
 else
-	echo "Unsuported OS. Exiting now..."
+	echo "Unsuported OS for autmatic agent installation. Exiting now..."
 	exit 1
 fi;
 
@@ -33,8 +58,8 @@ gem install grit stomp --no-rdoc --no-ri
 # create puppet group
 groupadd puppet
 
-# create requried dirs
-mkdir -p {/var/log/puppet/,/var/lib/puppet/lib/puppet/indirector/,/etc/puppet/modules,/usr/share/mcollective/plugins/mcollective}
+# create puppet dirs
+mkdir -p {/var/log/puppet/lib/puppet/indirector/,/etc/puppet/modules}
 
 # install requried puppet modules
 puppet module install example42/mcollective
