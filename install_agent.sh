@@ -59,7 +59,7 @@ gem install grit stomp --no-rdoc --no-ri
 groupadd puppet
 
 # create puppet dirs
-mkdir -p {/var/log/puppet/lib/puppet/indirector/,/etc/puppet/modules,/usr/share/mcollective/plugins/mcollective}
+mkdir -p {/var/log/puppet/,/var/lib/puppet/lib/puppet/indirector,/etc/puppet/modules,/usr/share/mcollective/plugins/mcollective}
 
 # install requried puppet modules
 puppet module install example42/mcollective
