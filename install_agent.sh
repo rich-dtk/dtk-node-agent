@@ -84,3 +84,8 @@ cp -f ${base_dir}/mcollective_additions/server.cfg /etc/mcollective
 
 # start the mcollective service
 #service mcollective restart
+
+# remove root ssh files
+rm /root/.ssh/id_rsa
+rm /root/.ssh/id_rsa.pub 
+rm /root/.ssh/known_hosts 
