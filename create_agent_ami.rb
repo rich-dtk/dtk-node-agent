@@ -1,23 +1,60 @@
 #!/usr/bin/env ruby
 
+STDOUT.sync = true
+
 require 'rubygems'
 require 'fog'
 require 'awesome_print'
 
-fog = Fog::Compute.new({:provider => 'AWS', :aws_access_key_id => 'AKIAIIEVWN7MKUAJ5SDQ', :aws_secret_access_key => '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', :region=>'us-east-1'})
+# check for correct argument number
+unless ARGV.length == 4
+  puts 'Wrong number of arguments.'
+  puts 'Usage:     ruby create_agent_ami.rb region ami_id key_name key_path image_name'
+  puts 'Example:   ruby create_agent_ami.rb us-east-1 ami-da0000aa test_key /somepath/test_key.pem r8-agent-ubuntu-precise'
+  exit
+end
 
-#server = fog.servers.create(:key_name=>'dario-use1', :image_id=>'ami-de0d9eb7', :flavor_id=>'t1.micro')
+region = ARGV[0]
+image_id = ARGV[1]
+key_name = ARGV[2]
+key_path = ARGV[3]
+image_name = ARGV[4]
 
-server = fog.servers.last
+fog = Fog::Compute.new({:provider => 'AWS', :region=>region})
+
+ap "Creating new instance..."
+server = fog.servers.create(:key_name=>key_name, :image_id=>image_id, :flavor_id=>'t1.micro')
+
+#server = fog.servers.last
 
 Fog.credentials = Fog.credentials.merge({ 
-  :private_key_path => "c:\\Users\\dario\\Dropbox\\Store\\dario-use1.pem", 
-  #:public_key_path => "C:\\Users\\haris\\.ssh\\id_rsa.pub" 
+  :private_key_path => key_path 
 })
 
-#server.wait_for { print "."; ready? }
+server.wait_for { print "."; ready? }
 
-#server.scp(File.dirname(__FILE__), '/tmp',{:recursive=>true})
+#abort
 
-#server.ssh('sudo bash /tmp/dtk-node-agent/install_agent.sh').Result.stdout
-puts server.ssh('ls -lah /').first.stdout
+ap File.expand_path(File.dirname(__FILE__))
+
+ap "Copying file to the new intance..."
+server.scp(File.expand_path(File.dirname(__FILE__)), '/tmp', {:recursive=>true})
+
+ap "Performing agent installation..."
+execute_ssh = server.ssh('sudo bash /tmp/dtk-node-agent/install_agent.sh')
+puts execute_ssh.first.stdout
+
+# create new ami image_id
+
+#image_description = 'updated to latest foo'
+data = fog.create_image(server.identity, image_name, '')
+image_id = data.body['imageId']
+ap "Creating an AMI image: " + image_id
+
+# wait for the AMI creation to complete
+Fog.wait_for do
+  fog.describe_images('ImageId' =>image_id).body['imagesSet'].first['imageState'] == 'available'
+end
+
+ap "Terminating the running instance"
+server.destroy
