@@ -6,8 +6,8 @@ require 'rubygems'
 require 'fog'
 require 'awesome_print'
 
-# check for correct argument number
-unless ARGV.length == 4
+# check arguments
+unless ARGV.length == 5
   puts 'Wrong number of arguments.'
   puts 'Usage:     ruby create_agent_ami.rb region ami_id key_name key_path image_name'
   puts 'Example:   ruby create_agent_ami.rb us-east-1 ami-da0000aa test_key /somepath/test_key.pem r8-agent-ubuntu-precise'
@@ -20,6 +20,12 @@ key_name = ARGV[2]
 key_path = ARGV[3]
 image_name = ARGV[4]
 
+# check if AWS credentials are available to Fog
+if Fog.credentials.empty?
+	puts "Please make sure that your AWS credentials are set in the ~/.fog file."
+	abort
+end
+
 fog = Fog::Compute.new({:provider => 'AWS', :region=>region})
 
 ap "Creating new instance..."
@@ -31,22 +37,21 @@ Fog.credentials = Fog.credentials.merge({
   :private_key_path => key_path 
 })
 
+# wait for server to become available
 server.wait_for { print "."; ready? }
-
-#abort
 
 ap File.expand_path(File.dirname(__FILE__))
 
-ap "Copying file to the new intance..."
+# upload the entire dtk-node-agent directory via scp
+ap "Copying files to the new intance..."
 server.scp(File.expand_path(File.dirname(__FILE__)), '/tmp', {:recursive=>true})
 
+# execute the installation script on the instance
 ap "Performing agent installation..."
 execute_ssh = server.ssh('sudo bash /tmp/dtk-node-agent/install_agent.sh')
 puts execute_ssh.first.stdout
 
 # create new ami image_id
-
-#image_description = 'updated to latest foo'
 data = fog.create_image(server.identity, image_name, '')
 image_id = data.body['imageId']
 ap "Creating an AMI image: " + image_id
@@ -56,5 +61,6 @@ Fog.wait_for do
   fog.describe_images('ImageId' =>image_id).body['imagesSet'].first['imageState'] == 'available'
 end
 
+# Terminate the instance
 ap "Terminating the running instance"
 server.destroy
