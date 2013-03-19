@@ -39,8 +39,7 @@ Fog.credentials = Fog.credentials.merge({
 
 # wait for server to become available
 server.wait_for { print "."; ready? }
-
-ap File.expand_path(File.dirname(__FILE__))
+sleep(20)
 
 # upload the entire dtk-node-agent directory via scp
 ap "Copying files to the new intance..."
