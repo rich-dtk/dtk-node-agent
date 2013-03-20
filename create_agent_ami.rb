@@ -7,7 +7,7 @@ require 'fog'
 require 'awesome_print'
 
 # check arguments
-unless ARGV.length == 5
+unless ARGV.length == 6
   puts 'Wrong number of arguments.'
   puts 'Usage:     ruby create_agent_ami.rb region ami_id key_name key_path image_name'
   puts 'Example:   ruby create_agent_ami.rb us-east-1 ami-da0000aa test_key /somepath/test_key.pem r8-agent-ubuntu-precise'
@@ -18,7 +18,8 @@ region = ARGV[0]
 image_id = ARGV[1]
 key_name = ARGV[2]
 key_path = ARGV[3]
-image_name = ARGV[4]
+ssh_username = ARGV[4]
+image_name = ARGV[5]
 
 # check if AWS credentials are available to Fog
 if Fog.credentials.empty?
@@ -28,32 +29,42 @@ end
 
 fog = Fog::Compute.new({:provider => 'AWS', :region=>region})
 
-ap "Creating new instance..."
+puts "Creating new instance..."
 server = fog.servers.create(:key_name=>key_name, :image_id=>image_id, :flavor_id=>'t1.micro')
-
 #server = fog.servers.last
 
+# set up ssh access
 Fog.credentials = Fog.credentials.merge({ 
-  :private_key_path => key_path 
+  :private_key_path => key_path
+  :username => ssh_username
 })
 
 # wait for server to become available
 server.wait_for { print "."; ready? }
-sleep(20)
+sleep 60
+
+# test ssh connection before proceeding
+begin
+	server.ssh('ls /')
+rescue
+	puts "Unable to connect via ssh. Please make sure that the key and username you provided are correct."
+	puts "Terminating instance..."
+	server.destroy
+end
 
 # upload the entire dtk-node-agent directory via scp
-ap "Copying files to the new intance..."
+puts "Copying files to the new intance..."
 server.scp(File.expand_path(File.dirname(__FILE__)), '/tmp', {:recursive=>true})
 
 # execute the installation script on the instance
-ap "Performing agent installation..."
+puts "Performing agent installation..."
 execute_ssh = server.ssh('sudo bash /tmp/dtk-node-agent/install_agent.sh')
 puts execute_ssh.first.stdout
 
 # create new ami image_id
 data = fog.create_image(server.identity, image_name, '')
 image_id = data.body['imageId']
-ap "Creating an AMI image: " + image_id
+puts "Creating an AMI image: " + image_id
 
 # wait for the AMI creation to complete
 Fog.wait_for do
@@ -61,5 +72,5 @@ Fog.wait_for do
 end
 
 # Terminate the instance
-ap "Terminating the running instance"
+puts "Terminating the running instance"
 server.destroy
