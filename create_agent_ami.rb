@@ -9,8 +9,8 @@ require 'awesome_print'
 # check arguments
 unless ARGV.length == 6
   puts 'Wrong number of arguments.'
-  puts 'Usage:     ruby create_agent_ami.rb region ami_id key_name key_path image_name'
-  puts 'Example:   ruby create_agent_ami.rb us-east-1 ami-da0000aa test_key /somepath/test_key.pem r8-agent-ubuntu-precise'
+  puts 'Usage:     ruby create_agent_ami.rb region ami_id key_name key_path ssh_username image_name'
+  puts 'Example:   ruby create_agent_ami.rb us-east-1 ami-da0000aa test_key /somepath/test_key.pem root r8-agent-ubuntu-precise'
   exit
 end
 
@@ -35,9 +35,9 @@ server = fog.servers.create(:key_name=>key_name, :image_id=>image_id, :flavor_id
 
 # set up ssh access
 Fog.credentials = Fog.credentials.merge({ 
-  :private_key_path => key_path
-  :username => ssh_username
+  :private_key_path => key_path,
 })
+server.username = ssh_username
 
 # wait for server to become available
 server.wait_for { print "."; ready? }
@@ -47,9 +47,10 @@ sleep 60
 begin
 	server.ssh('ls /')
 rescue
-	puts "Unable to connect via ssh. Please make sure that the key and username you provided are correct."
+	puts "Unable to connect via ssh. Please make sure that the ssh key and username you provided are correct."
 	puts "Terminating instance..."
-	server.destroy
+	#server.destroy
+	abort
 end
 
 # upload the entire dtk-node-agent directory via scp
