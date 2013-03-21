@@ -41,7 +41,7 @@ server.username = ssh_username
 
 # wait for server to become available
 server.wait_for { print "."; ready? }
-sleep 60
+sleep 100
 
 # test ssh connection before proceeding
 begin
@@ -49,7 +49,7 @@ begin
 rescue
 	puts "Unable to connect via ssh. Please make sure that the ssh key and username you provided are correct."
 	puts "Terminating instance..."
-	#server.destroy
+	server.destroy
 	abort
 end
 
