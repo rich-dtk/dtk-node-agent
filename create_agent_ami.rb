@@ -67,6 +67,7 @@ data = fog.create_image(server.identity, image_name, '')
 image_id = data.body['imageId']
 puts "Creating an AMI image: " + image_id
 
+sleep 5
 # wait for the AMI creation to complete
 Fog.wait_for do
   fog.describe_images('ImageId' =>image_id).body['imagesSet'].first['imageState'] == 'available'
