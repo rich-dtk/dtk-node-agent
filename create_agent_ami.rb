@@ -10,8 +10,8 @@ require 'trollop'
 # read and check arguments
 opts = Trollop::options do
     opt :region, "AWS Region on which to create the AMI image", :required => true, :type => :string
-    opt :aws_key, "AWS Access Key", :required => true, :default => Fog.credentials[:aws_access_key_id], :type => :string
-    opt :aws_secret, "AWS Secret Access Key", :required => true, :default => Fog.credentials[:aws_secret_access_key], :type => :string
+    opt :aws_key, "AWS Access Key", :default => Fog.credentials[:aws_access_key_id], :type => :string
+    opt :aws_secret, "AWS Secret Access Key", :default => Fog.credentials[:aws_secret_access_key], :type => :string
     opt :security_group, "AWS Security group", :default => 'default', :type => :string
     opt :key_pair, "AWS keypair for the new instance", :required => true, :type => :string
     opt :key_path, "Path to the PEM file for ssh access", :required => true, :type => :string
@@ -19,6 +19,8 @@ opts = Trollop::options do
     opt :ami_id, "AMI id which to spin up", :required => true, :type => :string
     opt :image_name, "Name of the new image", :required => true, :type => :string
 end
+Trollop::die :aws_key, "must be available" if opts[:aws_key].nil?
+Trollop::die :aws_secret, "must be available" if opts[:aws_secret].nil?
 
 region = opts[:region]
 image_id = opts[:ami_id]
@@ -31,7 +33,7 @@ security_group = opts[:security_group]
 fog = Fog::Compute.new({:provider => 'AWS', :region=>region})
 
 puts "Creating new instance..."
-server = fog.servers.create(:key_name=>key_name, :image_id=>image_id, :flavor_id=>'t1.micro', :groups => security_group)
+server = fog.servers.create(:key_name=>key_name, :image_id=>image_id, :flavor_id=>'t1.micro', :groups => security_group, :aws_access_key_id => opts[:aws_key], :aws_secret_access_key => opts[:aws_secret])
 #server = fog.servers.last
 
 # set up ssh access
