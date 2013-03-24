@@ -5,32 +5,33 @@ STDOUT.sync = true
 require 'rubygems'
 require 'fog'
 require 'awesome_print'
+require 'trollop'
 
-# check arguments
-unless ARGV.length == 6
-  puts 'Wrong number of arguments.'
-  puts 'Usage:     ruby create_agent_ami.rb region ami_id key_name key_path ssh_username image_name'
-  puts 'Example:   ruby create_agent_ami.rb us-east-1 ami-da0000aa test_key /somepath/test_key.pem root r8-agent-ubuntu-precise'
-  exit
+# read and check arguments
+opts = Trollop::options do
+    opt :region, "AWS Region on which to create the AMI image", :required => true, :type => :string
+    opt :aws_key, "AWS Access Key", :required => true, :default => Fog.credentials[:aws_access_key_id], :type => :string
+    opt :aws_secret, "AWS Secret Access Key", :required => true, :default => Fog.credentials[:aws_secret_access_key], :type => :string
+    opt :security_group, "AWS Security group", :default => 'default', :type => :string
+    opt :key_pair, "AWS keypair for the new instance", :required => true, :type => :string
+    opt :key_path, "Path to the PEM file for ssh access", :required => true, :type => :string
+    opt :ssh_username, "SSH Username", :required => true, :type => :string
+    opt :ami_id, "AMI id which to spin up", :required => true, :type => :string
+    opt :image_name, "Name of the new image", :required => true, :type => :string
 end
 
-region = ARGV[0]
-image_id = ARGV[1]
-key_name = ARGV[2]
-key_path = ARGV[3]
-ssh_username = ARGV[4]
-image_name = ARGV[5]
-
-# check if AWS credentials are available to Fog
-if Fog.credentials.empty?
-	puts "Please make sure that your AWS credentials are set in the ~/.fog file."
-	abort
-end
+region = opts[:region]
+image_id = opts[:ami_id]
+key_name = opts[:key_pair]
+key_path = opts[:key_path]
+ssh_username = opts[:ssh_username]
+image_name = opts[:image_name]
+security_group = opts[:security_group]
 
 fog = Fog::Compute.new({:provider => 'AWS', :region=>region})
 
 puts "Creating new instance..."
-server = fog.servers.create(:key_name=>key_name, :image_id=>image_id, :flavor_id=>'t1.micro')
+server = fog.servers.create(:key_name=>key_name, :image_id=>image_id, :flavor_id=>'t1.micro', :groups => security_group)
 #server = fog.servers.last
 
 # set up ssh access
