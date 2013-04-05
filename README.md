@@ -16,10 +16,10 @@ Options:
   --security-group, -s <s>:   AWS Security group (default: default)
         --key-pair, -k <s>:   AWS keypair for the new instance
         --key-path, -e <s>:   Path to the PEM file for ssh access
-    --ssh-username, -h <s>:   SSH Username
+    --ssh-username, -u <s>:   SSH Username
           --ami-id, -m <s>:   AMI id which to spin up
       --image-name, -i <s>:   Name of the new image
-                --help, -l:   Show this message
+                --help, -h:   Show this message
 ```
 
 example:  

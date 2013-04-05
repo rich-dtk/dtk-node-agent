@@ -15,7 +15,7 @@ opts = Trollop::options do
     opt :security_group, "AWS Security group", :default => 'default', :type => :string
     opt :key_pair, "AWS keypair for the new instance", :required => true, :type => :string
     opt :key_path, "Path to the PEM file for ssh access", :required => true, :type => :string
-    opt :ssh_username, "SSH Username", :required => true, :type => :string
+    opt :ssh_username, "SSH Username", :required => true, :type => :string, :short => '-u'
     opt :ami_id, "AMI id which to spin up", :required => true, :type => :string
     opt :image_name, "Name of the new image", :required => true, :type => :string
 end
