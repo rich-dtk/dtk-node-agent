@@ -1,5 +1,5 @@
 module MCollective
-  module Agentregex group 1st n collumns and put everything else in the last group
+  module Agent
     class Ps < RPC::Agent
       metadata    :name        => "ps info",
                   :description => "Agent to get ps info (running processes)",
