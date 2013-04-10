@@ -24,7 +24,8 @@ module MCollective
           ps_packet.store(:start_time,  result[4])
           ps_packet.store(:tty,    result[5])
           ps_packet.store(:time,  result[6])
-          ps_packet.store(:command,  result[7].strip)
+          result[7] = (result[7][0...60].strip + '...') if result[7].strip.length > 60
+          ps_packet.store(:command,  result[7])
           ps_result << ps_packet
         end
 
