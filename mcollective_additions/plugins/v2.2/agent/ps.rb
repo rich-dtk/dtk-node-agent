@@ -13,7 +13,6 @@ module MCollective
         output.gsub!(/^.+\]$/,'')
         results = output.scan(/(\S+)[\s].*?(\S+)[\s].*?(\S+)[\s].*?(\S+)[\s].*?(\S+)[\s].*?(\S+)[\s].*?(\S+)[\s].*?(.+)/)
         results.shift
-
         ps_result = []
         results.each do |result|
           ps_packet = {}
