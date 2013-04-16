@@ -18,6 +18,9 @@ function getosinfo()
 base_dir="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . ${base_dir}/install.config
 
+# update PATH just in case
+export PATH=$PATH:/sbin:/usr/sbin
+
 # check package manager used on the system and install appropriate packages/init scripts
 if [[ `which apt-get` ]]; then
 	apt-get update  --fix-missing
