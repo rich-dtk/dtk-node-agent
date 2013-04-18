@@ -116,8 +116,9 @@ module MCollective
       end
 
       def run(request)
- 	cmps_with_attrs = request[:components_with_attributes]
- 	node_manifest = request[:node_manifest]
+       	cmps_with_attrs = request[:components_with_attributes]
+       	node_manifest = request[:node_manifest]
+        inter_node_stage = request[:inter_node_stage]
 
         clean_state()
         ret = nil
@@ -135,7 +136,7 @@ module MCollective
           execute_lines = node_manifest || ret_execute_lines(cmps_with_attrs)
           execute_string = execute_lines.join("\n")
           @log.info("\n----------------execute_string------------\n#{execute_string}\n----------------execute_string------------")
-          File.open("/tmp/site.pp","w"){|f| f << execute_string}
+          File.open("/tmp/site_stage#{inter_node_stage}.pp","w"){|f| f << execute_string}
           cmd_line = 
             [
              "apply", 
