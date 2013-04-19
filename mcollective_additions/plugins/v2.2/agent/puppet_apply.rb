@@ -55,6 +55,11 @@ module MCollective
         set_reply?(puppet_run_response || more_generic_response)
       end
      private
+
+      def sync_agents(version_context)
+        
+      end
+
       #TODO: this should be common accross Agents after pulling out aagent specfic params
       def pull_recipes(version_context)
         ret = Response.new
@@ -111,6 +116,7 @@ module MCollective
       def run(request)
         cmps_with_attrs = request[:components_with_attributes]
         node_manifest = request[:node_manifest]
+        inter_node_stage = request[:inter_node_stage]
 
         # Amar: Added task ID to current thread, so puppet apply can be canceled from puppet_cancel.rb when user requests cancel
         task_id = request[:top_task_id]
@@ -132,7 +138,7 @@ module MCollective
           execute_lines = node_manifest || ret_execute_lines(cmps_with_attrs)
           execute_string = execute_lines.join("\n")
           @log.info("\n----------------execute_string------------\n#{execute_string}\n----------------execute_string------------")
-          File.open("/tmp/site.pp","w"){|f| f << execute_string}
+          File.open("/tmp/site_stage#{inter_node_stage}.pp","w"){|f| f << execute_string}
           cmd_line = 
             [
              "apply", 
@@ -154,7 +160,7 @@ module MCollective
           @log.info("exit.status = #{exit_status}")
           @log.info("report_status = #{report_status}")
           @log.info("report_info = #{report_info.inspect}")
-          return_code = (report_status == :failed ? 1 : exit_status)
+          return_code = ((report_status == :failed || report_info[:errors]) ? 1 : exit_status)
           ret ||= Response.new()
           if return_code == 0
             if dynamic_attributes = process_dynamic_attributes?(cmps_with_attrs)
