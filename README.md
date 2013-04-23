@@ -27,6 +27,6 @@ example:
 ruby create_agent_ami.rb --region us-east-1 --ami-id ami-da0000aa --key-pair test_key --key-path /somepath/test_key.pem \
 --ssh-username root --image-name r8-agent-ubuntu-precise
 ```
-
+ 
 
 
