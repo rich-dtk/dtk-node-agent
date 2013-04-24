@@ -56,10 +56,6 @@ module MCollective
       end
      private
 
-      def sync_agents(version_context)
-        
-      end
-
       #TODO: this should be common accross Agents after pulling out aagent specfic params
       def pull_recipes(version_context)
         ret = Response.new
