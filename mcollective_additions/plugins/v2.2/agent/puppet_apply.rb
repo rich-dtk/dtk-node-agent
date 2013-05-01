@@ -156,7 +156,7 @@ module MCollective
           @log.info("exit.status = #{exit_status}")
           @log.info("report_status = #{report_status}")
           @log.info("report_info = #{report_info.inspect}")
-          return_code = ((report_status == :failed || report_info[:errors]) ? 1 : exit_status)
+          return_code = ((report_status == :failed || (report_info||{})[:errors]) ? 1 : exit_status)
           ret ||= Response.new()
           if return_code == 0
             if dynamic_attributes = process_dynamic_attributes?(cmps_with_attrs)
@@ -185,10 +185,10 @@ module MCollective
           }
           ret.merge!(error_info)
          ensure
+          ret ||= Response.new()
           # Amar: If puppet_apply thread was killed from puppet_cancel, ':is_canceled' flag is set on the thread, 
           # so puppet_apply can send status canceled in the response
           if Thread.current[:is_canceled]
-            ret ||= Response.new()
             @log.info("Setting cancel status...")
             ret.set_status_canceled!()
             return set_reply!(ret)
@@ -201,6 +201,7 @@ module MCollective
             stderr_capture.unlink
             if stderr_msg and not stderr_msg.empty?
               ret[:errors] = (ret[:errors]||[]) + [{:message => stderr_msg}]
+              ret.set_status_failed!()
               Puppet::err stderr_msg 
               Puppet::info "(end)"
             end
