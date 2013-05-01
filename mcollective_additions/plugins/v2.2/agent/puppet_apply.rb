@@ -156,7 +156,7 @@ module MCollective
           @log.info("exit.status = #{exit_status}")
           @log.info("report_status = #{report_status}")
           @log.info("report_info = #{report_info.inspect}")
-          return_code = ((report_status == :failed || (report_info||{})[:errors]) ? 1 : exit_status)
+          return_code = ((report_status == :failed || report_info[:errors]) ? 1 : exit_status)
           ret ||= Response.new()
           if return_code == 0
             if dynamic_attributes = process_dynamic_attributes?(cmps_with_attrs)
@@ -609,7 +609,7 @@ module MCollective
       Thread.current[:report_info] = report_info
     end
     def self.get_report_info()
-      Thread.current[:report_info]
+      Thread.current[:report_info]||{}
     end
   end
 end
