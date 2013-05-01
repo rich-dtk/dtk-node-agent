@@ -4,7 +4,7 @@ module MCollective
   module Agent
     class Dev_manager < RPC::Agent
 
-      AGENT_MCOLLECTIVE_LOCATION = "#{::MCollective::Config.instance.libdir}/mcollective/agent/"
+      AGENT_MCOLLECTIVE_LOCATION = "#{Config.instance.libdir}/mcollective/agent/"
 
       action "inject_agent" do
         begin

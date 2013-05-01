@@ -185,9 +185,9 @@ module MCollective
           }
           ret.merge!(error_info)
          ensure
-          ret ||= Response.new()
           # Amar: If puppet_apply thread was killed from puppet_cancel, ':is_canceled' flag is set on the thread, 
           # so puppet_apply can send status canceled in the response
+          ret ||= Response.new()
           if Thread.current[:is_canceled]
             @log.info("Setting cancel status...")
             ret.set_status_canceled!()
