@@ -9,7 +9,7 @@ Puppet.settings.set_value(:storeconfigs,true,:memory, :dont_trigger_handles => t
 Puppet::Resource::Catalog.indirection.cache_class = :store_configs
 Puppet::Resource.indirection.terminus_class = :store_configs
 
-AGENT_MCOLLECTIVE_LOCATION = "#{Config.instance.libdir}/mcollective/agent/"
+AGENT_MCOLLECTIVE_LOCATION = "#{::MCollective::Config.instance.libdir}/mcollective/agent/"
 
 module MCollective
   module Agent
