@@ -124,6 +124,7 @@ module MCollective
         log_file = nil
         begin
           save_stderr = nil
+          stderr_capture = nil
           log_file = File.open(log_file_path,"a")
           log_file.close
           Puppet[:autoflush] = true
@@ -131,24 +132,35 @@ module MCollective
           File.delete(most_recent_link) if File.exists? most_recent_link
           File.symlink(log_file_path,most_recent_link)
 
-          execute_lines = node_manifest || ret_execute_lines(cmps_with_attrs)
-          execute_string = execute_lines.join("\n")
-          @log.info("\n----------------execute_string------------\n#{execute_string}\n----------------execute_string------------")
-          File.open("/tmp/site_stage#{inter_node_stage}.pp","w"){|f| f << execute_string}
-          cmd_line = 
-            [
-             "apply", 
-             "-l", log_file_path, 
-             "-d", 
-             "--report", true, "--reports", "r8report",
-             "--storeconfigs_backend", "r8_storeconfig_backend",
-             "-e", execute_string
-            ]
-          cmd = "/usr/bin/puppet" 
-          save_stderr = $stderr
-          stderr_capture = Tempfile.new("stderr")
-          $stderr = stderr_capture
-          Puppet::Util::CommandLine.new(cmd,cmd_line).execute
+          # Amar: Node manifest contains list of generated puppet manifests
+          #       This is done to support multiple puppet calls inside one puppet_apply agent call
+          node_manifest.each_with_index do |puppet_manifest, i|
+            execute_lines = puppet_manifest || ret_execute_lines(cmps_with_attrs)
+            execute_string = execute_lines.join("\n")
+            @log.info("\n----------------execute_string------------\n#{execute_string}\n----------------execute_string------------")
+            File.open("/tmp/site_stage#{inter_node_stage}_puppet_inovcation_#{i+1}.pp","w"){|f| f << execute_string}
+            cmd_line = 
+              [
+               "apply", 
+               "-l", log_file_path, 
+               "-d", 
+               "--report", true, "--reports", "r8report",
+               "--storeconfigs_backend", "r8_storeconfig_backend",
+               "-e", execute_string
+              ]
+            cmd = "/usr/bin/puppet" 
+            save_stderr = $stderr
+            stderr_capture = Tempfile.new("stderr")
+            $stderr = stderr_capture
+            begin
+              Puppet::Util::CommandLine.new(cmd,cmd_line).execute
+            rescue SystemExit => exit
+              report_status = Report::get_status()
+              report_info = Report::get_report_info()
+              # For multiple puppet calls, if one fails, rest will not get executed
+              raise exit if report_status == :failed || report_info[:errors] || (i == node_manifest.size - 1)
+            end
+          end
          rescue SystemExit => exit
           report_status = Report::get_status()
           report_info = Report::get_report_info()
