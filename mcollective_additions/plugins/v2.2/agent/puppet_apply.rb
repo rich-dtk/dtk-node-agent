@@ -109,7 +109,7 @@ module MCollective
         ret 
       end
 
-# adding line for testing agent sync 4
+# adding line for testing agent sync 5
       def run(request)
         cmps_with_attrs = request[:components_with_attributes]
         node_manifest = request[:node_manifest]
