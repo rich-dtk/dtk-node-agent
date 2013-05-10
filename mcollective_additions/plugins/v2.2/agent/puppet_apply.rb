@@ -199,8 +199,8 @@ module MCollective
          ensure
           # Amar: If puppet_apply thread was killed from puppet_cancel, ':is_canceled' flag is set on the thread, 
           # so puppet_apply can send status canceled in the response
+          ret ||= Response.new()
           if Thread.current[:is_canceled]
-            ret ||= Response.new()
             @log.info("Setting cancel status...")
             ret.set_status_canceled!()
             return set_reply!(ret)
@@ -213,6 +213,7 @@ module MCollective
             stderr_capture.unlink
             if stderr_msg and not stderr_msg.empty?
               ret[:errors] = (ret[:errors]||[]) + [{:message => stderr_msg}]
+              ret.set_status_failed!()
               Puppet::err stderr_msg 
               Puppet::info "(end)"
             end
@@ -620,7 +621,7 @@ module MCollective
       Thread.current[:report_info] = report_info
     end
     def self.get_report_info()
-      Thread.current[:report_info]
+      Thread.current[:report_info]||{}
     end
   end
 end
