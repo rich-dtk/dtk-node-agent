@@ -12,6 +12,10 @@ module MCollective
           ret ||= Response.new()
 
           request[:agent_files].each do |k,v|
+            if v == :deleted
+              File.delete("#{AGENT_MCOLLECTIVE_LOCATION}#{k}")
+              next
+            end
             content = Base64.decode64(v)
             File.open("#{AGENT_MCOLLECTIVE_LOCATION}#{k}",'w') do |file|
               file << content
