@@ -9,7 +9,8 @@ module MCollective
                   :url         => "",
                   :timeout     => 2
       action "get_ps" do 
-        output=`ps -ef`
+        
+output=`ps -ef`
         output.gsub!(/^.+\]$/,'')
         results = output.scan(/(\S+)[\s].*?(\S+)[\s].*?(\S+)[\s].*?(\S+)[\s].*?(\S+)[\s].*?(\S+)[\s].*?(\S+)[\s].*?(.+)/)
         results.shift
