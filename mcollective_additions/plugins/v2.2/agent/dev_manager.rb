@@ -9,7 +9,7 @@ module MCollective
       action "inject_agent" do
         begin
 
-          ret ||= Response.new()
+          ret ||= Response.new() 
 
           request[:agent_files].each do |k,v|
             if v == :deleted
