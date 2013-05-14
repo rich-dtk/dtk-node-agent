@@ -52,32 +52,32 @@ module MCollective
        end
 
    end
-      #TODO: this should be common accross Agents
-      class Response < Hash
-        def initialize(hash={})
-          super()
-          self.merge!(hash)
-          self[:status] = :unknown unless hash.has_key?(:status)
-        end
-
-        def to_hash()
-          Hash.new.merge(self)
-        end
-
-        def failed?()
-          self[:status] == :failed
-        end
-
-        def set_status_failed!()
-          self[:status] = :failed
-        end
-        def set_status_succeeded!()
-          self[:status] = :succeeded
-        end
-        def set_dynamic_attributes!(dynamic_attributes)
-          self[:dynamic_attributes] = dynamic_attributes
-        end
+    #TODO: this should be common accross Agents
+    class Response < Hash
+      def initialize(hash={})
+        super()
+        self.merge!(hash)
+        self[:status] = :unknown unless hash.has_key?(:status)
       end
+
+      def to_hash()
+        Hash.new.merge(self)
+      end
+
+      def failed?()
+        self[:status] == :failed
+      end
+
+      def set_status_failed!()
+        self[:status] = :failed
+      end
+      def set_status_succeeded!()
+        self[:status] = :succeeded
+      end
+      def set_dynamic_attributes!(dynamic_attributes)
+        self[:dynamic_attributes] = dynamic_attributes
+      end
+    end
   end
 end
 

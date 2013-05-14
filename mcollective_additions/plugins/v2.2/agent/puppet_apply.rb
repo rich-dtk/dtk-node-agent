@@ -55,6 +55,7 @@ module MCollective
         set_reply?(puppet_run_response || more_generic_response)
       end
      private
+
       #TODO: this should be common accross Agents after pulling out aagent specfic params
       def pull_recipes(version_context)
         ret = Response.new
@@ -111,6 +112,7 @@ module MCollective
       def run(request)
         cmps_with_attrs = request[:components_with_attributes]
         node_manifest = request[:node_manifest]
+        inter_node_stage = request[:inter_node_stage]
 
         # Amar: Added task ID to current thread, so puppet apply can be canceled from puppet_cancel.rb when user requests cancel
         task_id = request[:top_task_id]
@@ -122,6 +124,7 @@ module MCollective
         log_file = nil
         begin
           save_stderr = nil
+          stderr_capture = nil
           log_file = File.open(log_file_path,"a")
           log_file.close
           Puppet[:autoflush] = true
@@ -129,24 +132,35 @@ module MCollective
           File.delete(most_recent_link) if File.exists? most_recent_link
           File.symlink(log_file_path,most_recent_link)
 
-          execute_lines = node_manifest || ret_execute_lines(cmps_with_attrs)
-          execute_string = execute_lines.join("\n")
-          @log.info("\n----------------execute_string------------\n#{execute_string}\n----------------execute_string------------")
-          File.open("/tmp/site.pp","w"){|f| f << execute_string}
-          cmd_line = 
-            [
-             "apply", 
-             "-l", log_file_path, 
-             "-d", 
-             "--report", true, "--reports", "r8report",
-             "--storeconfigs_backend", "r8_storeconfig_backend",
-             "-e", execute_string
-            ]
-          cmd = "/usr/bin/puppet" 
-          save_stderr = $stderr
-          stderr_capture = Tempfile.new("stderr")
-          $stderr = stderr_capture
-          Puppet::Util::CommandLine.new(cmd,cmd_line).execute
+          # Amar: Node manifest contains list of generated puppet manifests
+          #       This is done to support multiple puppet calls inside one puppet_apply agent call
+          node_manifest.each_with_index do |puppet_manifest, i|
+            execute_lines = puppet_manifest || ret_execute_lines(cmps_with_attrs)
+            execute_string = execute_lines.join("\n")
+            @log.info("\n----------------execute_string------------\n#{execute_string}\n----------------execute_string------------")
+            File.open("/tmp/site_stage#{inter_node_stage}_puppet_inovcation_#{i+1}.pp","w"){|f| f << execute_string}
+            cmd_line = 
+              [
+               "apply", 
+               "-l", log_file_path, 
+               "-d", 
+               "--report", true, "--reports", "r8report",
+               "--storeconfigs_backend", "r8_storeconfig_backend",
+               "-e", execute_string
+              ]
+            cmd = "/usr/bin/puppet" 
+            save_stderr = $stderr
+            stderr_capture = Tempfile.new("stderr")
+            $stderr = stderr_capture
+            begin
+              Puppet::Util::CommandLine.new(cmd,cmd_line).execute
+            rescue SystemExit => exit
+              report_status = Report::get_status()
+              report_info = Report::get_report_info()
+              # For multiple puppet calls, if one fails, rest will not get executed
+              raise exit if report_status == :failed || report_info[:errors] || (i == node_manifest.size - 1)
+            end
+          end
          rescue SystemExit => exit
           report_status = Report::get_status()
           report_info = Report::get_report_info()
@@ -154,7 +168,7 @@ module MCollective
           @log.info("exit.status = #{exit_status}")
           @log.info("report_status = #{report_status}")
           @log.info("report_info = #{report_info.inspect}")
-          return_code = (report_status == :failed ? 1 : exit_status)
+          return_code = ((report_status == :failed || report_info[:errors]) ? 1 : exit_status)
           ret ||= Response.new()
           if return_code == 0
             if dynamic_attributes = process_dynamic_attributes?(cmps_with_attrs)
@@ -185,8 +199,8 @@ module MCollective
          ensure
           # Amar: If puppet_apply thread was killed from puppet_cancel, ':is_canceled' flag is set on the thread, 
           # so puppet_apply can send status canceled in the response
+          ret ||= Response.new()
           if Thread.current[:is_canceled]
-            ret ||= Response.new()
             @log.info("Setting cancel status...")
             ret.set_status_canceled!()
             return set_reply!(ret)
@@ -199,6 +213,7 @@ module MCollective
             stderr_capture.unlink
             if stderr_msg and not stderr_msg.empty?
               ret[:errors] = (ret[:errors]||[]) + [{:message => stderr_msg}]
+              ret.set_status_failed!()
               Puppet::err stderr_msg 
               Puppet::info "(end)"
             end
@@ -606,7 +621,7 @@ module MCollective
       Thread.current[:report_info] = report_info
     end
     def self.get_report_info()
-      Thread.current[:report_info]
+      Thread.current[:report_info]||{}
     end
   end
 end
