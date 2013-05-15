@@ -24,7 +24,7 @@ export PATH=$PATH:/sbin:/usr/sbin
 # check package manager used on the system and install appropriate packages/init scripts
 if [[ `which apt-get` ]]; then
 	apt-get update  --fix-missing
-	apt-get install -y ruby rubygems build-essential irb wget curl lsb-release
+	apt-get install -y ruby rubygems build-essential irb wget curl lsb-release git
 	getosinfo
 	wget http://apt.puppetlabs.com/puppetlabs-release-${codename}.deb
 	if [[ $? -eq 0 ]]; then 
@@ -37,7 +37,7 @@ if [[ `which apt-get` ]]; then
 	# enable ec2-run-user-data just to be sure
 	[[ -f /etc/init.d/ec2-run-user-data ]] && update-rc.d ec2-run-user-data defaults
 elif [[ `which yum` ]]; then
-	yum -y install ruby rubygems redhat-lsb
+	yum -y install ruby rubygems redhat-lsb git
 	yum -y groupinstall "Development tools"
 	getosinfo
 	# install and enable cloud-init scripts on RHEL/Centos if not available
