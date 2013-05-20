@@ -182,6 +182,7 @@ module MCollective
               :return_code => return_code            
             }
             error_info.merge!(:errors => report_info[:errors]) if (report_info||{})[:errors]
+            error_info[:errors].each { |error| error["type"] = "user_error" }
             ret.merge!(error_info)
           end
          rescue Exception => e
