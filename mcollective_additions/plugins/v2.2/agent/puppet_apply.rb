@@ -138,7 +138,7 @@ module MCollective
             execute_lines = puppet_manifest || ret_execute_lines(cmps_with_attrs)
             execute_string = execute_lines.join("\n")
             @log.info("\n----------------execute_string------------\n#{execute_string}\n----------------execute_string------------")
-            File.open("/tmp/site_stage#{inter_node_stage}_puppet_inovcation_#{i+1}.pp","w"){|f| f << execute_string}
+            File.open("/tmp/site_stage#{inter_node_stage}_puppet_invocation_#{i+1}.pp","w"){|f| f << execute_string}
             cmd_line = 
               [
                "apply", 
