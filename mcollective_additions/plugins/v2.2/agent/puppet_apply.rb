@@ -26,7 +26,7 @@ module MCollective
       def run_action
         #validate :components_with_attributes
         #validate :version_context
-  #validate :node_manifest
+        #validate :node_manifest
         #validate :task_id, Fixnum
         #validate :top_task_id, Fixnum
 
@@ -182,7 +182,7 @@ module MCollective
               :return_code => return_code            
             }
             error_info.merge!(:errors => report_info[:errors]) if (report_info||{})[:errors]
-            error_info[:errors].each { |error| error["type"] = "user_error" }
+            error_info[:errors].each { |error| error["type"] = "user_error" } if error_info[:errors]
             ret.merge!(error_info)
           end
          rescue Exception => e
@@ -213,7 +213,7 @@ module MCollective
             stderr_capture.close
             stderr_capture.unlink
             if stderr_msg and not stderr_msg.empty?
-              ret[:errors] = (ret[:errors]||[]) + [{:message => stderr_msg}]
+              ret[:errors] = (ret[:errors]||[]) + [{:message => stderr_msg, :type => "user_error" }]
               ret.set_status_failed!()
               Puppet::err stderr_msg 
               Puppet::info "(end)"
