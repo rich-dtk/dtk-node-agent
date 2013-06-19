@@ -113,6 +113,12 @@ module MCollective
         cmps_with_attrs = request[:components_with_attributes]
         node_manifest = request[:node_manifest]
         inter_node_stage = request[:inter_node_stage]
+        puppet_version = request[:puppet_version]
+
+        if puppet_version
+          @log.info("Setting user provided puppet version '#{puppet_version}'") 
+          puppet_version = "_#{puppet_version}_"
+        end
 
         # Amar: Added task ID to current thread, so puppet apply can be canceled from puppet_cancel.rb when user requests cancel
         task_id = request[:top_task_id]
