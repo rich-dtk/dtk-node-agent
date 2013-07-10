@@ -8,7 +8,7 @@ Code that is present in AMIs that server basis for nodes being spun up
 
 ### Install the agent and create a new AMI image
 ```
-ruby create_agent_ami.rb --help    
+./create_agent_ami.rb --help
 Options:
           --region, -r <s>:   AWS Region on which to create the AMI image
          --aws-key, -a <s>:   AWS Access Key
@@ -17,6 +17,7 @@ Options:
         --key-pair, -k <s>:   AWS keypair for the new instance
         --key-path, -e <s>:   Path to the PEM file for ssh access
     --ssh-username, -u <s>:   SSH Username
+     --ssh-timeout, -t <i>:   Time to wait before instance is ssh ready (seconds) (default: 100)
           --ami-id, -m <s>:   AMI id which to spin up
       --image-name, -i <s>:   Name of the new image
                 --help, -h:   Show this message

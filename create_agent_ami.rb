@@ -4,7 +4,6 @@ STDOUT.sync = true
 
 require 'rubygems'
 require 'fog'
-require 'awesome_print'
 require 'trollop'
 
 # read and check arguments
