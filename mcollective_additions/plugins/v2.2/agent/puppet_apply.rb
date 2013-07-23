@@ -160,6 +160,7 @@ module MCollective
             $stderr = stderr_capture
             begin
               Puppet::Node::Environment.clear()
+              Thread.current[:known_resource_types] = nil #TODO: when move up to later versions of puupet think can remove because Puppet::Node::Environment.clear() does this
               Puppet::Util::CommandLine.new(cmd,cmd_line).execute
             rescue SystemExit => exit
               report_status = Report::get_status()
