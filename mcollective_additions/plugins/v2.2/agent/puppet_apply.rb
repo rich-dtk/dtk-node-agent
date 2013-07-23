@@ -159,6 +159,7 @@ module MCollective
             stderr_capture = Tempfile.new("stderr")
             $stderr = stderr_capture
             begin
+              Puppet::Node::Environment.clear()
               Puppet::Util::CommandLine.new(cmd,cmd_line).execute
             rescue SystemExit => exit
               report_status = Report::get_status()
