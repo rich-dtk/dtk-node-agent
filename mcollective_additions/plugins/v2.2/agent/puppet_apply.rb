@@ -26,7 +26,7 @@ module MCollective
       def run_action
         #validate :components_with_attributes
         #validate :version_context
-  #validate :node_manifest
+        #validate :node_manifest
         #validate :task_id, Fixnum
         #validate :top_task_id, Fixnum
 
@@ -113,6 +113,12 @@ module MCollective
         cmps_with_attrs = request[:components_with_attributes]
         node_manifest = request[:node_manifest]
         inter_node_stage = request[:inter_node_stage]
+        puppet_version = request[:puppet_version]
+
+        if puppet_version
+          @log.info("Setting user provided puppet version '#{puppet_version}'") 
+          puppet_version = "_#{puppet_version}_"
+        end
 
         # Amar: Added task ID to current thread, so puppet apply can be canceled from puppet_cancel.rb when user requests cancel
         task_id = request[:top_task_id]
@@ -138,7 +144,7 @@ module MCollective
             execute_lines = puppet_manifest || ret_execute_lines(cmps_with_attrs)
             execute_string = execute_lines.join("\n")
             @log.info("\n----------------execute_string------------\n#{execute_string}\n----------------execute_string------------")
-            File.open("/tmp/site_stage#{inter_node_stage}_puppet_inovcation_#{i+1}.pp","w"){|f| f << execute_string}
+            File.open("/tmp/site_stage#{inter_node_stage}_puppet_invocation_#{i+1}.pp","w"){|f| f << execute_string}
             cmd_line = 
               [
                "apply", 
@@ -153,6 +159,8 @@ module MCollective
             stderr_capture = Tempfile.new("stderr")
             $stderr = stderr_capture
             begin
+              Puppet::Node::Environment.clear()
+              Thread.current[:known_resource_types] = nil #TODO: when move up to later versions of puupet think can remove because Puppet::Node::Environment.clear() does this
               Puppet::Util::CommandLine.new(cmd,cmd_line).execute
             rescue SystemExit => exit
               report_status = Report::get_status()
@@ -182,6 +190,7 @@ module MCollective
               :return_code => return_code            
             }
             error_info.merge!(:errors => report_info[:errors]) if (report_info||{})[:errors]
+            error_info[:errors].each { |error| error["type"] = "user_error" } if error_info[:errors]
             ret.merge!(error_info)
           end
          rescue Exception => e
@@ -212,7 +221,7 @@ module MCollective
             stderr_capture.close
             stderr_capture.unlink
             if stderr_msg and not stderr_msg.empty?
-              ret[:errors] = (ret[:errors]||[]) + [{:message => stderr_msg}]
+              ret[:errors] = (ret[:errors]||[]) + [{:message => stderr_msg, :type => "user_error" }]
               ret.set_status_failed!()
               Puppet::err stderr_msg 
               Puppet::info "(end)"
