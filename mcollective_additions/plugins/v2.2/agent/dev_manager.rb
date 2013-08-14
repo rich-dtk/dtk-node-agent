@@ -6,20 +6,23 @@ module MCollective
 
       AGENT_MCOLLECTIVE_LOCATION = "#{::MCollective::Config.instance.libdir}/mcollective/agent/"
       @log = Log.instance
-
+      
       action "inject_agent" do
         begin
-
+          
+          @log.info("Starting agent dev_manager")
           ret ||= Response.new() 
 
           request[:agent_files].each do |k,v|
             if v == :deleted
+              @log.info("Deleting #{AGENT_MCOLLECTIVE_LOCATION}#{k}")
               File.delete("#{AGENT_MCOLLECTIVE_LOCATION}#{k}")
               next
             end
             content = Base64.decode64(v)
             File.open("#{AGENT_MCOLLECTIVE_LOCATION}#{k}",'w') do |file|
               file << content
+              @log.info("Code loaded: '#{AGENT_MCOLLECTIVE_LOCATION}#{k}'")
             end
           end
           ret.set_status_succeeded!()
