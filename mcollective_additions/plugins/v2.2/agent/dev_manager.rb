@@ -25,6 +25,7 @@ module MCollective
 
           t1 = Thread.new do 
             sleep(2)
+            Log.info("initiating mcollective restart...")
             system("sudo /etc/init.d/mcollective restart")
           end
 
