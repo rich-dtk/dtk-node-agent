@@ -5,6 +5,7 @@ module MCollective
     class Dev_manager < RPC::Agent
 
       AGENT_MCOLLECTIVE_LOCATION = "#{::MCollective::Config.instance.libdir}/mcollective/agent/"
+      @log = Log.instance
 
       action "inject_agent" do
         begin
@@ -25,14 +26,14 @@ module MCollective
 
           t1 = Thread.new do 
             sleep(2)
-            Log.info("initiating mcollective restart...")
+            @log.info("initiating mcollective restart...")
             system("sudo /etc/init.d/mcollective restart")
           end
 
           return ret
 
         rescue Exception => e
-          Log.error e
+          @log.error e
           ret.set_status_failed!()
           error_info = { :error => { :message => "Error syncing agents: #{e}" } }
           ret.merge!(error_info)
