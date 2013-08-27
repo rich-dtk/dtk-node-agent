@@ -57,7 +57,7 @@ fi;
 
 # install puppet and other gems
 gem install puppet -v "${puppet_version}" --no-rdoc --no-ri
-gem install grit stomp --no-rdoc --no-ri 
+gem install grit stomp sshkeyauth --no-rdoc --no-ri
 
 # create puppet group
 groupadd puppet

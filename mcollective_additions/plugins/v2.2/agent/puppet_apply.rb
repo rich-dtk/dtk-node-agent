@@ -59,6 +59,7 @@ module MCollective
       #TODO: this should be common accross Agents after pulling out aagent specfic params
       def pull_recipes(version_context)
         ret = Response.new
+        ENV['GIT_SHELL'] = nil #This is put in because if vcsrepo Puppet module used it sets this
         begin
           version_context.each do |vc|
             repo = vc[:repo]
