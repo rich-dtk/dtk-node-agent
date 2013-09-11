@@ -33,8 +33,13 @@ security_group = opts[:security_group]
 fog = Fog::Compute.new({:provider => 'AWS', :region=>region})
 
 puts "Creating new instance..."
-server = fog.servers.create(:key_name=>key_name, :image_id=>image_id, :flavor_id=>'t1.micro', :groups => security_group, :aws_access_key_id => opts[:aws_key], :aws_secret_access_key => opts[:aws_secret])
-#server = fog.servers.last
+server = fog.servers.create(
+    :key_name=>key_name, 
+    :image_id=>image_id, 
+    :flavor_id=>'t1.micro', 
+    :groups => security_group, 
+    :aws_access_key_id => opts[:aws_key], 
+    :aws_secret_access_key => opts[:aws_secret])
 
 # set up ssh access
 Fog.credentials = Fog.credentials.merge({ 
@@ -57,7 +62,7 @@ rescue
 end
 
 # upload the entire dtk-node-agent directory via scp
-puts "Copying files to the new intance..."
+puts "", "Copying files to the new intance..."
 server.scp(File.expand_path(File.dirname(__FILE__)), '/tmp', {:recursive=>true})
 
 # execute the installation script on the instance
