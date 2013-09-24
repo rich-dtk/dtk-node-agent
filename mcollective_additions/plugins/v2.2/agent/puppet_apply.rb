@@ -4,6 +4,7 @@ require 'puppet'
 require 'grit'
 require 'tempfile'
 require 'fileutils'
+require File.expand_path('dtk_node_agent_git_client',File.dirname(__FILE__)
 
 #dont want to run standard hooks and just want store configs for catalogs/resources, not for facts ..
 Puppet.settings.set_value(:storeconfigs,true,:memory, :dont_trigger_handles => true)
@@ -40,7 +41,7 @@ module MCollective
         more_generic_response = Response.new()
         puppet_run_response = nil
         begin
-          response = pull_recipes(request[:version_context])
+          response = pull_modules(request[:version_context])
           return set_reply!(response) if response.failed?()
           puppet_run_response = run(request)
         rescue Exception => e
@@ -56,8 +57,8 @@ module MCollective
       end
      private
 
-      #TODO: this should be common accross Agents after pulling out aagent specfic params
-      def pull_recipes(version_context)
+      #TODO: this should be common accross Agents after pulling out agent specfic params
+      def pull_modules(version_context)
         ret = Response.new
         ENV['GIT_SHELL'] = nil #This is put in because if vcsrepo Puppet module used it sets this
         begin
@@ -620,6 +621,7 @@ module MCollective
       end
     end
   end
+  
   class Report
     def self.set_status(status)
       Thread.current[:report_status] = status.to_sym
@@ -636,13 +638,23 @@ module MCollective
   end
 end
 
-Puppet::Reports.register_report(:r8report) do
+#below is more complicated to allow reloading 
+if Puppet::Reports.constants.include?('R8report')
+  Puppet::Reports.send(:remove_const,:R8report)
+end
+#TODO: needed to pass {:overwrite => true} to Puppet::Reports.genmodule so expanded def Puppet::Reports.register_report(:r8report) 
+def register_report(name,&block)
+  name = name.intern
+  mod = Puppet::Reports.genmodule(name, :overwrite=> true,:extend => Puppet::Util::Docs, :hash => Puppet::Reports.instance_hash(:report), :block => block)
+  mod.send(:define_method, :report_name) do
+    name
+  end
+end
+register_report(:r8report) do
   desc "report for R8 agent"
 
   def process
     MCollective::Report.set_status(status)
-
-    #TODO: right now just passing raw info nack on errors; may normalize here
     report_info = Hash.new
     errors = logs.select{|log_el|log_el.level == :err}
     unless errors.empty?
