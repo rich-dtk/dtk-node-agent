@@ -43,7 +43,7 @@ module DTK
 
       def remote_branch_exists?(branch,remote_name=nil)
         remote_name ||= default_remote()
-        remote_barnch = "#{remote_name}/#{branch}"
+        remote_branch = "#{remote_name}/#{branch}"
         @grit_repo.remotes.find{|h|h.name == remote_branch} ? true : nil
       end
       
