@@ -13,11 +13,20 @@ module DTK
       end
       
       def pull_and_checkout_branch?(branch,opts={})
+        sha = opts[:sha]
+        #shortcut
+        return if sha and (sha == current_branch_or_head())
+
         unless remote_branch_exists?(branch)
           git_command__remote_branch_add(branch)
         end
-        git_command__fetch()
-        git_command__checkout(opts[:sha]||branch)
+
+        if branch_exists?(branch)
+          git_command__pull(branch)
+          git_command__checkout(sha) if sha
+        else
+          git_command__checkout(sha||branch)
+        end
       end
 
     private        
@@ -37,8 +46,13 @@ module DTK
         end
       end
       
-      def git_command__fetch()
-        git_command().fetch()
+      def git_command__pull(branch,remote_name=nil)
+        remote_name ||= default_remote()
+        git_command().pull(git_command_opts(),remote_name,branch)
+      end
+
+      def branch_exists?(branch)
+        @grit_repo.heads.find{|h|h.name == branch} ? true : nil
       end
 
       def remote_branch_exists?(branch,remote_name=nil)

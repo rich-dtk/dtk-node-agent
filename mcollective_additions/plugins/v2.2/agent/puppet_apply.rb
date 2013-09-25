@@ -49,12 +49,7 @@ module MCollective
           puppet_run_response = run(request)
         rescue Exception => e
           more_generic_response.set_status_failed!()
-          error_info = {
-            :error => {
-              :message => e.inspect
-            }
-          }
-          more_generic_response.merge!(error_info)
+          more_generic_response.merge!(error_info(e))
         end
         set_reply?(puppet_run_response || more_generic_response)
       end
@@ -62,6 +57,7 @@ module MCollective
       def pull_modules(version_context,git_server)
         ret = Response.new
         ENV['GIT_SHELL'] = nil #This is put in because if vcsrepo Puppet module used it sets this
+        error_backtrace = nil
         begin
           version_context.each do |vc|
             [:repo,:implementation,:branch].each do |field|
@@ -82,7 +78,7 @@ module MCollective
                 git_repo.clone_branch(remote_repo,vc[:branch],opts)
               end
              rescue Exception => e
-              pp [e,e.backtrace[0..5]]
+              error_backtrace = backtrace_subset(e)
               #to achieve idempotent behavior; fully remove directory if any problems
               FileUtils.rm_rf repo_dir
               raise e
@@ -90,13 +86,9 @@ module MCollective
           end
           ret.set_status_succeeded!()
          rescue Exception => e
+          log_error(e)
           ret.set_status_failed!()
-          error_info = {
-            :error => {
-              :message => e.inspect
-            }
-          }
-          ret.merge!(error_info)
+          ret.merge!(error_info(e))
          ensure
           #TODO: may mot be needed now switch to grit
           #git library sets these vars; so reseting here
@@ -190,17 +182,10 @@ module MCollective
             ret.merge!(error_info)
           end
          rescue Exception => e
-          pp [e,e.backtrace[0..5]]
-          log_error = ([e.inspect]+[e.backtrace[0..5]]).join("\n")
-          @log.info("\n----------------error-----\n#{log_error}\n----------------error-----")
+          log_error(e)
           ret ||= Response.new()
           ret.set_status_failed!()
-          error_info = {
-            :error => {
-              :message => e.inspect
-            }
-          }
-          ret.merge!(error_info)
+          ret.merge!(error_info(e))
          ensure
           # Amar: If puppet_apply thread was killed from puppet_cancel, ':is_canceled' flag is set on the thread, 
           # so puppet_apply can send status canceled in the response
@@ -226,6 +211,24 @@ module MCollective
           Puppet::Util::Log.close_all()
         end
         ret 
+      end
+
+      def backtrace_subset(e)
+        e.backtrace[0..10]
+      end
+
+      def log_error(e)
+        log_error = ([e.inspect]+backtrace_subset(e)).join("\n")
+        @log.info("\n----------------error-----\n#{log_error}\n----------------error-----")
+      end
+      
+      def error_info(e,backtrace=nil)
+        {
+          :error => {
+            :message => e.inspect,
+            :backtrace => backtrace||backtrace_subset(e)
+          }
+        }
       end
 
       #TODO: cleanup fn; need to fix on serevr side; inconsient use of symbol and string keys 
