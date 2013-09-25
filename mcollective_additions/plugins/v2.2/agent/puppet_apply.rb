@@ -82,6 +82,7 @@ module MCollective
                 git_repo.clone_branch(remote_repo,vc[:branch],opts)
               end
              rescue Exception => e
+              pp [e,e.backtrace[0..5]]
               #to achieve idempotent behavior; fully remove directory if any problems
               FileUtils.rm_rf repo_dir
               raise e

@@ -32,7 +32,7 @@ module DTK
       end
       
       def git_command__checkout(ref)
-        unless current_branch() == ref
+        unless current_branch_or_head() == ref
           git_command().checkout(git_command_opts(),ref)
         end
       end
@@ -47,8 +47,13 @@ module DTK
         @grit_repo.remotes.find{|h|h.name == remote_branch} ? true : nil
       end
       
-      def current_branch()
-        @grit_repo.head.name
+      def current_branch_or_head()
+        #this returns sha when detached head
+        if @grit_repo.head
+          @grit_repo.head.name
+        elsif repo.commit('HEAD')
+          repo.commit('HEAD').id
+        end
       end
 
       def default_remote()
