@@ -76,7 +76,7 @@ module MCollective
             begin
               if File.exists?(repo_dir)
                 git_repo = ::DTK::NodeAgent::GitClient.new(repo_dir)
-                git_repo.pull_and_checkout_branch?(remote_repo,vc[:branch],opts)
+                git_repo.pull_and_checkout_branch?(vc[:branch],opts)
               else
                 git_repo = ::DTK::NodeAgent::GitClient.new(repo_dir,:create=>true)
                 git_repo.clone_branch(remote_repo,vc[:branch],opts)
