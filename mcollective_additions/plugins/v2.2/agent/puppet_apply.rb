@@ -71,14 +71,15 @@ module MCollective
             end
             repo_dir = "#{ModulePath}/#{vc[:implementation]}"
             remote_repo = "#{git_server}:#{vc[:repo]}"
+            opts = Hash.new
             opts.merge!(:sha => vc[:sha]) if vc[:sha]
             begin
               if File.exists?(repo_dir)
-                git_repo = ::DTK::NodeAgent::GitClient.new(repo_dir,:create=>true)
-                git_repo.clone_branch(remote_repo,vc[:branch],opts)
-              else
                 git_repo = ::DTK::NodeAgent::GitClient.new(repo_dir)
                 git_repo.pull_and_checkout_branch?(remote_repo,vc[:branch],opts)
+              else
+                git_repo = ::DTK::NodeAgent::GitClient.new(repo_dir,:create=>true)
+                git_repo.clone_branch(remote_repo,vc[:branch],opts)
               end
              rescue Exception => e
               #to achieve idempotent behavior; fully remove directory if any problems
