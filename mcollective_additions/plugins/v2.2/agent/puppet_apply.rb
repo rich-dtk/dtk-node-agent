@@ -4,7 +4,7 @@ require 'puppet'
 require 'grit'
 require 'tempfile'
 require 'fileutils'
-require File.expand_path('dtk_node_agent_git_client',File.dirname(__FILE__)
+require File.expand_path('dtk_node_agent_git_client',File.dirname(__FILE__))
 
 #dont want to run standard hooks and just want store configs for catalogs/resources, not for facts ..
 Puppet.settings.set_value(:storeconfigs,true,:memory, :dont_trigger_handles => true)
