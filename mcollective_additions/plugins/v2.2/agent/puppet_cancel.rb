@@ -4,11 +4,6 @@ require 'grit'
 require 'tempfile'
 require 'fileutils'
 
-#dont want to run standard hooks and just want store configs for catalogs/resources, not for facts ..
-Puppet.settings.set_value(:storeconfigs,true,:memory, :dont_trigger_handles => true)
-Puppet::Resource::Catalog.indirection.cache_class = :store_configs
-Puppet::Resource.indirection.terminus_class = :store_configs
-
 #TODO: move to be shared by agents
 PuppetApplyLogDir = "/var/log/puppet"
 ModulePath =  "/etc/puppet/modules"
