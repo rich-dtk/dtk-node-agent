@@ -146,7 +146,7 @@ module MCollective
                "apply", 
                "-l", log_file_path, 
                "-d", 
-               "--report", true, "--reports", "r8report",
+               "--report", "true", "--reports", "r8report",
                #"--storeconfigs_backend", "r8_storeconfig_backend",
                "-e", execute_string
               ]

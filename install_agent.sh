@@ -24,7 +24,10 @@ export PATH=$PATH:/sbin:/usr/sbin
 # check package manager used on the system and install appropriate packages/init scripts
 if [[ `which apt-get` ]]; then
 	apt-get update  --fix-missing
-	apt-get install -y ruby rubygems build-essential irb wget curl lsb-release git
+	apt-get install -y ruby1.8 ruby1.8-dev rubygems1.8 libopenssl-ruby1.8 build-essential wget curl lsb-release git
+	# make sure ruby 1.8 is the default
+	update-alternatives --set ruby /usr/bin/ruby1.8
+	update-alternatives --set gem /usr/bin/gem1.8
 	getosinfo
 	wget http://apt.puppetlabs.com/puppetlabs-release-${codename}.deb
 	if [[ $? -eq 0 ]]; then 
