@@ -65,8 +65,8 @@ module DTK
         #this returns sha when detached head
         if @grit_repo.head
           @grit_repo.head.name
-        elsif repo.commit('HEAD')
-          repo.commit('HEAD').id
+        elsif @grit_repo.commit('HEAD')
+          @grit_repo.commit('HEAD').id
         end
       end
 
