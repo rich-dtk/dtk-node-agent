@@ -654,3 +654,17 @@ Puppet::Reports.register_report(:r8report) do
     self
   end
 end
+
+class Puppet::Settings
+  def initialize_global_settings(args = [])
+    #raise Puppet::DevError, "Attempting to initialize global default settings more than once!" if global_defaults_initialized?
+    return if global_defaults_initialized?
+    # The first two phases of the lifecycle of a puppet application are:
+    # 1) Parse the command line options and handle any of them that are
+    #    registered, defined "global" puppet settings (mostly from defaults.rb).
+    # 2) Parse the puppet config file(s).
+    parse_global_options(args)
+    parse_config_files
+    @global_defaults_initialized = true
+  end
+end
