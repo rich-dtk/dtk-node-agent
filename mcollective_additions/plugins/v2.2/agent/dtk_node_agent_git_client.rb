@@ -19,6 +19,7 @@ module DTK
 
         unless remote_branch_exists?(branch)
           git_command__remote_branch_add(branch)
+          git_command__fetch()
         end
 
         if branch_exists?(branch)
@@ -46,6 +47,11 @@ module DTK
         end
       end
       
+      def git_command__fetch(remote_name=nil)
+        remote_name ||= default_remote()
+        git_command().fetch(git_command_opts(),remote_name)
+      end
+
       def git_command__pull(branch,remote_name=nil)
         remote_name ||= default_remote()
         git_command().pull(git_command_opts(),remote_name,branch)
