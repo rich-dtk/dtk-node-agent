@@ -4,6 +4,7 @@ require 'puppet'
 require 'grit'
 require 'tempfile'
 require 'fileutils'
+require File.expand_path('dtk_node_agent_git_client',File.dirname(__FILE__))
 
 #TODO: move to be shared by agents
 PuppetApplyLogDir = "/var/log/puppet"
@@ -35,71 +36,57 @@ module MCollective
         more_generic_response = Response.new()
         puppet_run_response = nil
         begin
-          response = pull_recipes(request[:version_context])
+          unless git_server = Facts["git-server"]
+            raise "git-server is not set in facts" 
+          end
+          response = pull_modules(request[:version_context],git_server)
           return set_reply!(response) if response.failed?()
           puppet_run_response = run(request)
         rescue Exception => e
           more_generic_response.set_status_failed!()
-          error_info = {
-            :error => {
-              :message => e.inspect
-            }
-          }
-          more_generic_response.merge!(error_info)
+          more_generic_response.merge!(error_info(e))
         end
         set_reply?(puppet_run_response || more_generic_response)
       end
      private
-
-      #TODO: this should be common accross Agents after pulling out aagent specfic params
-      def pull_recipes(version_context)
+      def pull_modules(version_context,git_server)
         ret = Response.new
         ENV['GIT_SHELL'] = nil #This is put in because if vcsrepo Puppet module used it sets this
+        error_backtrace = nil
         begin
           version_context.each do |vc|
-            repo = vc[:repo]
-            implementation = vc[:implementation]
-            branch_name = vc[:branch]
-            repo_dir = "#{ModulePath}/#{implementation}"
-            unless File.exists?(repo_dir)
-              begin
-                raise "git server is not set in facts" unless git_server = Facts["git-server"]
-                remote_git = "#{git_server}:#{repo}"
-                ClientRepo.clone(remote_git,repo_dir)
-               rescue Exception => e
-                #to achive idempotent behavior fully remove directory that has not been fully cloned
-                FileUtils.rm_rf repo_dir
-                raise e
+            [:repo,:implementation,:branch].each do |field|
+              unless vc[field]
+                raise "version context does not have :#{field} field"
               end
             end
-            Dir.chdir(repo_dir) do
-              begin 
-                repo = ClientRepo.new(".")
-                if repo.branch_exists?(branch_name)
-                  current_branch = repo.current_branch
-                  repo.git_command__checkout(branch_name) unless current_branch == branch_name
-                  repo.git_command__pull(branch_name)
-                else
-                  unless repo.remote_branch_exists?("origin/#{branch_name}")
-                    repo.git_command__pull()
-                  end
-                  repo.git_command__checkout_track_branch(branch_name)
-                end
+            repo_dir = "#{ModulePath}/#{vc[:implementation]}"
+            remote_repo = "#{git_server}:#{vc[:repo]}"
+            opts = Hash.new
+            opts.merge!(:sha => vc[:sha]) if vc[:sha]
+            begin
+              if File.exists?(repo_dir)
+                git_repo = ::DTK::NodeAgent::GitClient.new(repo_dir)
+                git_repo.pull_and_checkout_branch?(vc[:branch],opts)
+              else
+                git_repo = ::DTK::NodeAgent::GitClient.new(repo_dir,:create=>true)
+                git_repo.clone_branch(remote_repo,vc[:branch],opts)
               end
+             rescue Exception => e
+              error_backtrace = backtrace_subset(e)
+              #to achieve idempotent behavior; fully remove directory if any problems
+              FileUtils.rm_rf repo_dir
+              raise e
             end
           end
           ret.set_status_succeeded!()
          rescue Exception => e
+          log_error(e)
           ret.set_status_failed!()
-          error_info = {
-            :error => {
-              :message => e.inspect
-            }
-          }
-          ret.merge!(error_info)
+          ret.merge!(error_info(e))
          ensure
           #TODO: may mot be needed now switch to grit
-          #git library sets these vars; so resting here
+          #git library sets these vars; so reseting here
           %w{GIT_DIR GIT_INDEX_FILE GIT_WORK_TREE}.each{|var|ENV[var]=nil}
         end
         ret 
@@ -190,17 +177,10 @@ module MCollective
             ret.merge!(error_info)
           end
          rescue Exception => e
-          pp [e,e.backtrace[0..5]]
-          log_error = ([e.inspect]+[e.backtrace[0..5]]).join("\n")
-          @log.info("\n----------------error-----\n#{log_error}\n----------------error-----")
+          log_error(e)
           ret ||= Response.new()
           ret.set_status_failed!()
-          error_info = {
-            :error => {
-              :message => e.inspect
-            }
-          }
-          ret.merge!(error_info)
+          ret.merge!(error_info(e))
          ensure
           # Amar: If puppet_apply thread was killed from puppet_cancel, ':is_canceled' flag is set on the thread, 
           # so puppet_apply can send status canceled in the response
@@ -226,6 +206,24 @@ module MCollective
           Puppet::Util::Log.close_all()
         end
         ret 
+      end
+
+      def backtrace_subset(e)
+        e.backtrace[0..10]
+      end
+
+      def log_error(e)
+        log_error = ([e.inspect]+backtrace_subset(e)).join("\n")
+        @log.info("\n----------------error-----\n#{log_error}\n----------------error-----")
+      end
+      
+      def error_info(e,backtrace=nil)
+        {
+          :error => {
+            :message => e.inspect,
+            :backtrace => backtrace||backtrace_subset(e)
+          }
+        }
       end
 
       #TODO: cleanup fn; need to fix on serevr side; inconsient use of symbol and string keys 
@@ -529,52 +527,6 @@ module MCollective
       end
 
       #TODO: this should be common accross Agents
-      class ClientRepo
-        def self.clone(remote_git,repo_dir)
-          Grit::Git.new("").clone(git_command_opts(),remote_git,repo_dir)
-        end
-        def initialize(path)
-          @path = path
-          @grit_repo = Grit::Repo.new(path)
-          @index = @grit_repo.index #creates new object so use @index, not grit_repo
-        end
-        
-        def branch_exists?(branch_name)
-          @grit_repo.heads.find{|h|h.name == branch_name} ? true : nil
-        end
-        
-        def remote_branch_exists?(branch_name)
-          @grit_repo.remotes.find{|h|h.name == branch_name} ? true : nil
-        end
-        
-        def git_command__checkout_track_branch(branch_name)
-          git_command().checkout(git_command_opts(),"--track","-b", branch_name, "origin/#{branch_name}")
-        end
-
-        def current_branch()
-          @grit_repo.head.name
-        end
-  
-        def git_command__checkout(branch_name) 
-          git_command().checkout(git_command_opts(),branch_name)
-        end
-        
-        def git_command__pull(branch_name=nil)
-          branch_name ? git_command().pull(git_command_opts(),"origin",branch_name) : git_command().pull(git_command_opts(),"origin")
-        end
-       private
-        def self.git_command_opts()
-          {:raise => true, :timeout => 60}
-        end
-        def git_command_opts()
-          self.class.git_command_opts()
-        end
-        def git_command()
-          @grit_repo.git
-        end
-      end
-
-      #TODO: this should be common accross Agents
       class Response < Hash
         def initialize(hash={})
           super()
@@ -615,6 +567,7 @@ module MCollective
       end
     end
   end
+  
   class Report
     def self.set_status(status)
       Thread.current[:report_status] = status.to_sym
@@ -631,13 +584,23 @@ module MCollective
   end
 end
 
-Puppet::Reports.register_report(:r8report) do
+#below is more complicated to allow reloading 
+if Puppet::Reports.constants.include?('R8report')
+  Puppet::Reports.send(:remove_const,:R8report)
+end
+#TODO: needed to pass {:overwrite => true} to Puppet::Reports.genmodule so expanded def Puppet::Reports.register_report(:r8report) 
+def register_report(name,&block)
+  name = name.intern
+  mod = Puppet::Reports.genmodule(name, :overwrite=> true,:extend => Puppet::Util::Docs, :hash => Puppet::Reports.instance_hash(:report), :block => block)
+  mod.send(:define_method, :report_name) do
+    name
+  end
+end
+register_report(:r8report) do
   desc "report for R8 agent"
 
   def process
     MCollective::Report.set_status(status)
-
-    #TODO: right now just passing raw info nack on errors; may normalize here
     report_info = Hash.new
     errors = logs.select{|log_el|log_el.level == :err}
     unless errors.empty?
