@@ -40,16 +40,24 @@ if [[ `which apt-get` ]]; then
 	# enable ec2-run-user-data just to be sure
 	[[ -f /etc/init.d/ec2-run-user-data ]] && update-rc.d ec2-run-user-data defaults
 elif [[ `which yum` ]]; then
-	yum -y install redhat-lsb
+	yum -y install redhat-lsb yum-utils
 	yum -y groupinstall "Development tools"
 	getosinfo
 	# set up epel and puppetlabs repos
 	if [[ ${release:0:1} == 5 ]]; then
 		[[ ! `yum repolist | grep epel` ]] && rpm -ivh http://dl.fedoraproject.org/pub/epel/5/x86_64/epel-release-5-4.noarch.rpm
 		rpm -ivh http://yum.puppetlabs.com/el/5/products/i386/puppetlabs-release-5-6.noarch.rpm
+		wget http://packages.sw.be/rpmforge-release/rpmforge-release-0.5.2-2.el5.rf.x86_64.rpm
+		rpm -ivh rpmforge-release-0.5.2-2.el5.rf.x86_64.rpm
+		rm rpmforge-release-0.5.2-2.el5.rf.x86_64.rpm
 	elif [[ ${release:0:1} == 6 ]]; then
 		[[ ! `yum repolist | grep epel` ]] && rpm -ivh http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
 		rpm -ivh http://yum.puppetlabs.com/el/6/products/i386/puppetlabs-release-6-6.noarch.rpm
+		wget http://packages.sw.be/rpmforge-release/rpmforge-release-0.5.2-2.el6.rf.x86_64.rpm
+		rpm -ivh rpmforge-release-0.5.2-2.el6.rf.x86_64.rpm
+		rm rpmforge-release-0.5.2-2.el6.rf.x86_64.rpm
+		yum-config-manager --disable rpmforge-release
+		yum-config-manager --enable rpmforge-extras
 	else
 		echo "Something went wrong while installing the Puppetlabs apt repo. Possible reason is this OS is not officially supported."
 	fi;
