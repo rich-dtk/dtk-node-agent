@@ -137,16 +137,16 @@ module MCollective
           execute_string = execute_lines.join("\n")
           @log.info("\n----------------execute_string------------\n#{execute_string}\n----------------execute_string------------")
           File.open("/tmp/site_stage#{inter_node_stage}.pp","w"){|f| f << execute_string}
-          cmd_line = 
-            [
-             "apply", 
-             "-l", log_file_path, 
-             "-d", 
-             "--report", true, "--reports", "r8report",
-             "--storeconfigs_backend", "r8_storeconfig_backend",
-             "-e", execute_string
-            ]
-          cmd = "/usr/bin/puppet" 
+cmd_line = 
+  [
+   "apply", 
+   "-l", log_file_path, 
+   "-d", 
+   "--report", true, "--reports", "r8report",
+   "--storeconfigs_backend", "r8_storeconfig_backend",
+   "-e", execute_string
+  ]
+cmd = "/usr/bin/puppet" 
           save_stderr = $stderr
           stderr_capture = Tempfile.new("stderr")
           $stderr = stderr_capture

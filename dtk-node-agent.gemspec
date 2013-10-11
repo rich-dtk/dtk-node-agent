@@ -23,11 +23,14 @@ Gem::Specification.new do |gem|
   
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
-  gem.name          = "dtk-client"
+  gem.name          = "dtk-node-agent"
   gem.require_paths = ["lib"]
   gem.version       = DtkNodeAgent::PROD_VERSION || DtkNodeAgent::VERSION
 
-  gem.add_dependency 'facter','~> 1.7'
-  gem.add_dependency 'trollop' ,'~> 2.0'
+  gem.add_dependency 'puppet', '~> 2.7.23'
+  gem.add_dependency 'facter', '~> 1.7.3'
+  gem.add_dependency 'grit', '~> 2.5.0'
+  gem.add_dependency 'stomp', '~> 1.3.1'
+  gem.add_dependency 'sshkeyauth', '~> 0.0.11'
 
 end

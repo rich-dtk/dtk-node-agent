@@ -1,8 +1,8 @@
 PATH
   remote: .
   specs:
-    dtk-client (0.1.0)
-      facter (~> 1.7)
+    dtk-node-agent (0.1.0)
+      facter (~> 1.7.3)
       trollop (~> 2.0)
 
 GEM
@@ -15,4 +15,4 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  dtk-client!
+  dtk-node-agent!

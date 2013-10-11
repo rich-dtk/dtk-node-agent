@@ -40,7 +40,7 @@ if [[ `which apt-get` ]]; then
 	# enable ec2-run-user-data just to be sure
 	[[ -f /etc/init.d/ec2-run-user-data ]] && update-rc.d ec2-run-user-data defaults
 elif [[ `which yum` ]]; then
-	yum -y install redhat-lsb yum-utils
+	yum -y install redhat-lsb yum-utils wget
 	yum -y groupinstall "Development tools"
 	getosinfo
 	# set up epel and puppetlabs repos
