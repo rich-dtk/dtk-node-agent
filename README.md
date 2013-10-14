@@ -4,7 +4,7 @@ dtk-node-agent
 Code that is present in AMIs that server basis for nodes being spun up
 
 ### Build the gem:
-gem build dtk-node-agent.gemspec
+`gem build dtk-node-agent.gemspec`
 
 ### Intalling the node agent on an existing AMI
 `sudo dtk-node-agent`
