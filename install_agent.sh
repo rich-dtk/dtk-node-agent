@@ -44,6 +44,9 @@ cd ${base_dir}
 gem build ${base_dir}/dtk-node-agent.gemspec
 gem install ${base_dir}/dtk-node-agent*.gem --no-rdoc --no-ri
 
+# run the gem
+dtk-node-agent -d
+
 # remove root ssh files
 rm /root/.ssh/id_rsa
 rm /root/.ssh/id_rsa.pub 
