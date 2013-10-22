@@ -40,8 +40,9 @@ fi;
 # remove any existing gems
 rm ${base_dir}/*.gem
 # install the dtk-node-agent gem
+cd ${base_dir}
 gem build ${base_dir}/dtk-node-agent.gemspec
-gem install dtk-node-agent*.gem --no-rdoc --no-ri
+gem install ${base_dir}/dtk-node-agent*.gem --no-rdoc --no-ri
 
 # remove root ssh files
 rm /root/.ssh/id_rsa
