@@ -39,7 +39,8 @@ server = fog.servers.create(
     :flavor_id=>'t1.micro', 
     :groups => security_group, 
     :aws_access_key_id => opts[:aws_key], 
-    :aws_secret_access_key => opts[:aws_secret])
+    :aws_secret_access_key => opts[:aws_secret],
+    :tags => {"Name" => "#{image_name}-temporary"})
 
 # set up ssh access
 Fog.credentials = Fog.credentials.merge({ 
