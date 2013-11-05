@@ -25,7 +25,7 @@ Gem::Specification.new do |gem|
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.name          = "dtk-node-agent"
   gem.require_paths = ["lib"]
-  gem.version       = DtkNodeAgent::PROD_VERSION || DtkNodeAgent::VERSION
+  gem.version       = DtkNodeAgent::PROD_VERSION || "#{DtkNodeAgent::VERSION}.#{ARGV[3]}".chomp(".")
 
   gem.add_dependency 'puppet', '~> 2.7.23'
   gem.add_dependency 'facter', '~> 1.7.3'
