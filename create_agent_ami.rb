@@ -18,9 +18,16 @@ opts = Trollop::options do
     opt :ssh_timeout, 'Time to wait before instance is ssh ready (seconds)', :type => :integer, :default => 100,:short => '-t'
     opt :ami_id, "AMI id which to spin up", :required => true, :type => :string
     opt :image_name, "Name of the new image", :required => true, :type => :string
+    opt :quiet, "Dont print out output (except for ami id and error messages)", :short => '-q'
 end
 Trollop::die :aws_key, "must be available" if opts[:aws_key].nil?
 Trollop::die :aws_secret, "must be available" if opts[:aws_secret].nil?
+
+@quiet = opts[:quiet]
+
+def puts_c(*text)
+    puts text unless @quiet
+end
 
 region = opts[:region]
 image_id = opts[:ami_id]
@@ -32,7 +39,7 @@ security_group = opts[:security_group]
 
 fog = Fog::Compute.new({:provider => 'AWS', :region=>region})
 
-puts "Creating new instance..."
+puts_c "Creating new instance..."
 server = fog.servers.create(
     :key_name=>key_name, 
     :image_id=>image_id, 
@@ -63,13 +70,13 @@ rescue
 end
 
 # upload the entire dtk-node-agent directory via scp
-puts "", "Copying files to the new intance..."
+puts_c "", "Copying files to the new intance..."
 server.scp(File.expand_path(File.dirname(__FILE__)), '/tmp', {:recursive=>true})
 
 # execute the installation script on the instance
-puts "Performing agent installation..."
+puts_c "Performing agent installation..."
 execute_ssh = server.ssh('sudo bash /tmp/dtk-node-agent/install_agent.sh')
-puts execute_ssh.first.stdout
+puts_c execute_ssh.first.stdout
 
 # create new ami image_id
 data = fog.create_image(server.identity, image_name, '')
@@ -83,5 +90,5 @@ Fog.wait_for do
 end
 
 # Terminate the instance
-puts "Terminating the running instance"
+puts_c "Terminating the running instance"
 server.destroy
