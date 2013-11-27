@@ -23,19 +23,25 @@ export PATH=$PATH:/sbin:/usr/sbin
 if [[ `which apt-get` ]]; then
 	apt-get update  --fix-missing
 	apt-get install -y ruby1.8 ruby1.8-dev rubygems1.8 libopenssl-ruby1.8 build-essential wget curl lsb-release git
-	# make sure ruby 1.8 is the default
-	update-alternatives --set ruby /usr/bin/ruby1.8
-	update-alternatives --set gem /usr/bin/gem1.8
+	# install puppet-omnibus
+	wget "http://dtk-storage.s3.amazonaws.com/puppet-omnibus_2.7.23-fpm0_amd64.deb"
+	dpkg -i puppet-omnibus_2.7.23-fpm0_amd64.deb
+	apt-get -y -f install
+	rm -rf puppet-omnibus_2.7.23-fpm0_amd64.deb
 elif [[ `which yum` ]]; then
 	# install ruby and git
-	yum -y install ruby rubygems ruby-devel
-	# make sure gem version and sources are up to date
-	[[ ! `gem sources | grep "rubygems.org"` ]] && gem sources -a https://rubygems.org
-	gem update --system --no-rdoc --no-ri
+	yum -y groupinstall "Development Tools"
+	yum -y install ruby rubygems ruby-devel wget
+	# install puppet-omnibus
+	wget "http://dtk-storage.s3.amazonaws.com/puppet-omnibus-2.7.23.fpm0-1.x86_64.rpm"
+	yum -y --nogpgcheck localinstall puppet-omnibus-2.7.23.fpm0-1.x86_64.rpm
+	rm -rf puppet-omnibus-2.7.23.fpm0-1.x86_64.rpm
 else
 	echo "Unsuported OS for automatic agent installation. Exiting now..."
 	exit 1
 fi;
+
+export PATH=/opt/puppet-omnibus/embedded/bin/:/opt/puppet-omnibus/bin/:$PATH
 
 # remove any existing gems
 rm ${base_dir}/*.gem
@@ -46,6 +52,9 @@ gem install ${base_dir}/dtk-node-agent*.gem --no-rdoc --no-ri
 
 # run the gem
 dtk-node-agent -d
+
+# link the mcollective daemon script to the omnibus path
+ln -sf /opt/puppet-omnibus/embedded/bin/mcollectived /usr/sbin/mcollectived
 
 # remove root ssh files
 rm /root/.ssh/id_rsa
