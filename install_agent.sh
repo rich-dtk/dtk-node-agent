@@ -22,20 +22,33 @@ export PATH=$PATH:/sbin:/usr/sbin
 # check package manager used on the system and install appropriate packages/init scripts
 if [[ `which apt-get` ]]; then
 	apt-get update  --fix-missing
-	apt-get install -y ruby1.8 ruby1.8-dev rubygems1.8 libopenssl-ruby1.8 build-essential wget curl lsb-release git
+	apt-get -y install python-software-properties build-essential wget curl lsb-release
+	getosinfo
+	if [[ ${osname} == 'Ubuntu' ]]; then
+		# add the git core ppa
+		yes | sudo add-apt-repository ppa:git-core/ppa
+		apt-get update
+	fi;
+	if [[ ${codename} == 'squeeze' ]]; then
+		echo "deb http://backports.debian.org/debian-backports squeeze-backports main" > /etc/apt/sources.list.d/squeeze-backports.list
+		apt-get update
+		apt-get -y install git/squeeze-backports
+	fi;
+	apt-get -y install git
 	# install puppet-omnibus
-	wget "http://dtk-storage.s3.amazonaws.com/puppet-omnibus_2.7.23-fpm0_amd64.deb"
-	dpkg -i puppet-omnibus_2.7.23-fpm0_amd64.deb
+	wget "http://dtk-storage.s3.amazonaws.com/puppet-omnibus_2.7.23-fpm0_amd64.deb" -O puppet-omnibus.deb
+	dpkg -i puppet-omnibus.deb
 	apt-get -y -f install
-	rm -rf puppet-omnibus_2.7.23-fpm0_amd64.deb
+	rm -rf puppet-omnibus.deb
 elif [[ `which yum` ]]; then
 	# install ruby and git
 	yum -y groupinstall "Development Tools"
-	yum -y install ruby rubygems ruby-devel wget
+	yum -y install ruby rubygems ruby-devel wget redhat-lsb
 	# install puppet-omnibus
-	wget "http://dtk-storage.s3.amazonaws.com/puppet-omnibus-2.7.23.fpm0-1.x86_64.rpm"
-	yum -y --nogpgcheck localinstall puppet-omnibus-2.7.23.fpm0-1.x86_64.rpm
-	rm -rf puppet-omnibus-2.7.23.fpm0-1.x86_64.rpm
+	getosinfo
+	wget "http://dtk-storage.s3.amazonaws.com/puppet-omnibus-2.7.23.fpm0-1.x86_64.el${release:0:1}.rpm" -O puppet-omnibus.rpm
+	yum -y --nogpgcheck localinstall puppet-omnibus.rpm
+	rm -rf puppet-omnibus.rpm
 else
 	echo "Unsuported OS for automatic agent installation. Exiting now..."
 	exit 1
@@ -44,7 +57,7 @@ fi;
 export PATH=/opt/puppet-omnibus/embedded/bin/:/opt/puppet-omnibus/bin/:$PATH
 
 # remove any existing gems
-rm ${base_dir}/*.gem
+[[ `ls ${base_dir}/*.gem 2>/dev/null` ]] && rm ${base_dir}/*.gem
 # install the dtk-node-agent gem
 cd ${base_dir}
 gem build ${base_dir}/dtk-node-agent.gemspec
