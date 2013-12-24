@@ -1,0 +1,7 @@
+/var/log/puppet/*.log {
+    missingok
+    notifempty
+    sharedscripts
+    weekly
+    rotate 2
+}

@@ -22,7 +22,7 @@ export PATH=$PATH:/sbin:/usr/sbin
 # check package manager used on the system and install appropriate packages/init scripts
 if [[ `which apt-get` ]]; then
 	apt-get update  --fix-missing
-	apt-get -y install python-software-properties build-essential wget curl lsb-release
+	apt-get -y install python-software-properties build-essential wget curl lsb-release logrotate
 	getosinfo
 	if [[ ${osname} == 'Ubuntu' ]]; then
 		# add the git core ppa
@@ -43,7 +43,7 @@ if [[ `which apt-get` ]]; then
 elif [[ `which yum` ]]; then
 	# install ruby and git
 	yum -y groupinstall "Development Tools"
-	yum -y install ruby rubygems ruby-devel wget redhat-lsb
+	yum -y install ruby rubygems ruby-devel wget redhat-lsb logrotate
 	# install puppet-omnibus
 	getosinfo
 	wget "http://dtk-storage.s3.amazonaws.com/puppet-omnibus-2.7.23.fpm0-1.x86_64.el${release:0:1}.rpm" -O puppet-omnibus.rpm
@@ -71,6 +71,10 @@ ln -sf /opt/puppet-omnibus/embedded/bin/mcollectived /usr/sbin/mcollectived
 
 # remove puppet.conf if it exists
 [[ -f /etc/puppet/puppet.conf ]] && rm /etc/puppet/puppet.conf
+
+# copy puppet and mcollective logrotate files
+[[ ! -f /etc/logrotate.d/mcollective ]] && cp ${base_dir}/src/etc/logrotate.d/mcollective /etc/logrotate.d/mcollective
+[[ ! -f /etc/logrotate.d/puppet ]] && cp ${base_dir}/src/etc/logrotate.d/puppet /etc/logrotate.d/puppet
 
 # remove root ssh files
 rm /root/.ssh/id_rsa

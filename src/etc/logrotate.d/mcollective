@@ -1,0 +1,9 @@
+/var/log/mcollective.log {
+    missingok
+    notifempty
+    copytruncate
+    sharedscripts
+    weekly
+    compress
+    rotate 2
+}
