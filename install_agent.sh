@@ -69,6 +69,9 @@ dtk-node-agent -d
 # link the mcollective daemon script to the omnibus path
 ln -sf /opt/puppet-omnibus/embedded/bin/mcollectived /usr/sbin/mcollectived
 
+# remove puppet.conf if it exists
+[[ -f /etc/puppet/puppet.conf ]] && rm /etc/puppet/puppet.conf
+
 # remove root ssh files
 rm /root/.ssh/id_rsa
 rm /root/.ssh/id_rsa.pub 
