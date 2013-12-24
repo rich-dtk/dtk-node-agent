@@ -4,6 +4,7 @@
     copytruncate
     sharedscripts
     weekly
+    size 10M
     compress
     rotate 2
 }
