@@ -18,6 +18,7 @@ opts = Trollop::options do
     opt :ssh_timeout, 'Time to wait before instance is ssh ready (seconds)', :type => :integer, :default => 100,:short => '-t'
     opt :ami_id, "AMI id which to spin up", :required => true, :type => :string
     opt :image_name, "Name of the new image", :required => true, :type => :string
+    opt :instance_size, "Size of the instance to spin up", :type => :string, :default => 't1.micro', :shot => '-s'
     opt :quiet, "Dont print out output (except for ami id and error messages)", :short => '-q'
 end
 Trollop::die :aws_key, "must be available" if opts[:aws_key].nil?
@@ -35,6 +36,7 @@ key_name = opts[:key_pair]
 key_path = opts[:key_path]
 ssh_username = opts[:ssh_username]
 image_name = opts[:image_name]
+instance_size = opts[:instance_size]
 security_group = opts[:security_group]
 
 fog = Fog::Compute.new({:provider => 'AWS', :region=>region})
@@ -43,7 +45,7 @@ puts_c "Creating new instance..."
 server = fog.servers.create(
     :key_name=>key_name, 
     :image_id=>image_id, 
-    :flavor_id=>'t1.micro', 
+    :flavor_id=>instance_size, 
     :groups => security_group, 
     :aws_access_key_id => opts[:aws_key], 
     :aws_secret_access_key => opts[:aws_secret],
