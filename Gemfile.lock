@@ -1,0 +1,18 @@
+PATH
+  remote: .
+  specs:
+    dtk-node-agent (0.1.0)
+      facter (~> 1.7.3)
+      trollop (~> 2.0)
+
+GEM
+  remote: http://rubygems.org/
+  specs:
+    facter (1.7.3)
+    trollop (2.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  dtk-node-agent!

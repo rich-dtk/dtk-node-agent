@@ -14,9 +14,7 @@ function getosinfo()
 	export release=`lsb_release -r | awk '{print $2}'`
 }
 
-# read the config file
 base_dir="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-. ${base_dir}/install.config
 
 # update PATH just in case
 export PATH=$PATH:/sbin:/usr/sbin
@@ -24,88 +22,59 @@ export PATH=$PATH:/sbin:/usr/sbin
 # check package manager used on the system and install appropriate packages/init scripts
 if [[ `which apt-get` ]]; then
 	apt-get update  --fix-missing
-	apt-get install -y ruby1.8 ruby1.8-dev rubygems1.8 libopenssl-ruby1.8 build-essential wget curl lsb-release git
-	# make sure ruby 1.8 is the default
-	update-alternatives --set ruby /usr/bin/ruby1.8
-	update-alternatives --set gem /usr/bin/gem1.8
+	apt-get -y install python-software-properties build-essential wget curl lsb-release logrotate
 	getosinfo
-	wget http://apt.puppetlabs.com/puppetlabs-release-${codename}.deb
-	if [[ $? -eq 0 ]]; then 
-		dpkg -i puppetlabs-release-${codename}.deb
+	if [[ ${osname} == 'Ubuntu' ]]; then
+		# add the git core ppa
+		yes | sudo add-apt-repository ppa:git-core/ppa
 		apt-get update
-		rm puppetlabs-release-${codename}.deb
-	else
-		echo "Something went wrong while installing the Puppetlabs apt repo. Possible reason is this OS is not officially supported."
 	fi;
-	# enable ec2-run-user-data just to be sure
-	[[ -f /etc/init.d/ec2-run-user-data ]] && update-rc.d ec2-run-user-data defaults
+	if [[ ${codename} == 'squeeze' ]]; then
+		echo "deb http://backports.debian.org/debian-backports squeeze-backports main" > /etc/apt/sources.list.d/squeeze-backports.list
+		apt-get update
+		apt-get -y install git/squeeze-backports
+	fi;
+	apt-get -y install git
+	# install puppet-omnibus
+	wget "http://dtk-storage.s3.amazonaws.com/puppet-omnibus_2.7.23-fpm0_amd64.deb" -O puppet-omnibus.deb
+	dpkg -i puppet-omnibus.deb
+	apt-get -y -f install
+	rm -rf puppet-omnibus.deb
 elif [[ `which yum` ]]; then
-	yum -y install redhat-lsb yum-utils
-	yum -y groupinstall "Development tools"
-	getosinfo
-	# set up epel and puppetlabs repos
-	if [[ ${release:0:1} == 5 ]]; then
-		[[ ! `yum repolist | grep epel` ]] && rpm -ivh http://dl.fedoraproject.org/pub/epel/5/x86_64/epel-release-5-4.noarch.rpm
-		rpm -ivh http://yum.puppetlabs.com/el/5/products/i386/puppetlabs-release-5-6.noarch.rpm
-		wget http://packages.sw.be/rpmforge-release/rpmforge-release-0.5.2-2.el5.rf.x86_64.rpm
-		rpm -ivh rpmforge-release-0.5.2-2.el5.rf.x86_64.rpm
-		rm rpmforge-release-0.5.2-2.el5.rf.x86_64.rpm
-	elif [[ ${release:0:1} == 6 ]]; then
-		[[ ! `yum repolist | grep epel` ]] && rpm -ivh http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
-		rpm -ivh http://yum.puppetlabs.com/el/6/products/i386/puppetlabs-release-6-6.noarch.rpm
-		wget http://packages.sw.be/rpmforge-release/rpmforge-release-0.5.2-2.el6.rf.x86_64.rpm
-		rpm -ivh rpmforge-release-0.5.2-2.el6.rf.x86_64.rpm
-		rm rpmforge-release-0.5.2-2.el6.rf.x86_64.rpm
-		yum-config-manager --disable rpmforge-release
-		yum-config-manager --enable rpmforge-extras
-	else
-		echo "Something went wrong while installing the Puppetlabs apt repo. Possible reason is this OS is not officially supported."
-	fi;
 	# install ruby and git
-	yum -y install ruby rubygems git
-	# make sure gem version and sources are up to date
-	[[ ! `gem sources | grep "rubygems.org"` ]] && gem sources -a https://rubygems.org
-	gem update --system --no-rdoc --no-ri
-	# install ec2-run-user-data init script
-	[[ ! -f /etc/init.d/ec2-run-user-data ]] && cp ${base_dir}/src/etc/init.d/ec2-run-user-data /etc/init.d/
-	chkconfig --level 345 ec2-run-user-data on
+	yum -y groupinstall "Development Tools"
+	yum -y install ruby rubygems ruby-devel wget redhat-lsb logrotate
+	# install puppet-omnibus
+	getosinfo
+	wget "http://dtk-storage.s3.amazonaws.com/puppet-omnibus-2.7.23.fpm0-1.x86_64.el${release:0:1}.rpm" -O puppet-omnibus.rpm
+	yum -y --nogpgcheck localinstall puppet-omnibus.rpm
+	rm -rf puppet-omnibus.rpm
 else
 	echo "Unsuported OS for automatic agent installation. Exiting now..."
 	exit 1
 fi;
 
-# install puppet and other gems
-gem install puppet -v "${puppet_version}" --no-rdoc --no-ri
-gem install grit stomp sshkeyauth --no-rdoc --no-ri
+export PATH=/opt/puppet-omnibus/embedded/bin/:/opt/puppet-omnibus/bin/:$PATH
 
-# create puppet group
-groupadd puppet
+# remove any existing gems
+[[ `ls ${base_dir}/*.gem 2>/dev/null` ]] && rm ${base_dir}/*.gem
+# install the dtk-node-agent gem
+cd ${base_dir}
+gem build ${base_dir}/dtk-node-agent.gemspec
+gem install ${base_dir}/dtk-node-agent*.gem --no-rdoc --no-ri
 
-# create puppet dirs
-mkdir -p {/var/log/puppet/,/var/lib/puppet/lib/puppet/indirector,/etc/puppet/modules,/usr/share/mcollective/plugins/mcollective}
+# run the gem
+dtk-node-agent -d
 
-# install requried puppet modules
-[[ ! -d /etc/puppet/modules/mcollective/ ]] && puppet module install example42/mcollective --version 2.0.7
-#puppet module install puppetlabs/ruby
+# link the mcollective daemon script to the omnibus path
+ln -sf /opt/puppet-omnibus/embedded/bin/mcollectived /usr/sbin/mcollectived
 
-# install ruby and and collective via puppet
-#puppet apply ${base_dir}/ruby.pp
-puppet apply ${base_dir}/mcollective.pp
+# remove puppet.conf if it exists
+[[ -f /etc/puppet/puppet.conf ]] && rm /etc/puppet/puppet.conf
 
-# copy puppet libs
-cp -rf ${base_dir}/puppet_additions/puppet_lib_base/puppet/indirector/* /var/lib/puppet/lib/puppet/indirector/
-
-# copy r8 puppet module
-cp -rf ${base_dir}/puppet_additions/modules/r8 /etc/puppet/modules
-
-# copy mcollective plugins
-cp -rf ${base_dir}/mcollective_additions/plugins/v${mcollective_version}/* /usr/share/mcollective/plugins/mcollective
-[[ -d /usr/libexec/mcollective/ ]] && cp -r /usr/libexec/mcollective/mcollective/* /usr/share/mcollective/plugins/mcollective
-# copy mcollective config
-cp -f ${base_dir}/mcollective_additions/server.cfg /etc/mcollective
-
-# start the mcollective service
-#service mcollective restart
+# copy puppet and mcollective logrotate files
+[[ ! -f /etc/logrotate.d/mcollective ]] && cp ${base_dir}/src/etc/logrotate.d/mcollective /etc/logrotate.d/mcollective
+[[ ! -f /etc/logrotate.d/puppet ]] && cp ${base_dir}/src/etc/logrotate.d/puppet /etc/logrotate.d/puppet
 
 # remove root ssh files
 rm /root/.ssh/id_rsa
