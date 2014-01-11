@@ -4,6 +4,6 @@ metadata    :name        => "run puppet actions",
             :license     => "",
             :version     => "",
             :url         => "",
-            :timeout     => 600
+            :timeout     => 1800
 action "run", :description => "puppet apply" do
 end
