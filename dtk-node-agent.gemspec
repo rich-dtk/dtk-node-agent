@@ -27,7 +27,7 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
   gem.version       = DtkNodeAgent::PROD_VERSION || "#{DtkNodeAgent::VERSION}.#{ARGV[3]}".chomp(".")
 
-  gem.add_dependency 'puppet', '~> 2.7.23'
+  gem.add_dependency 'puppet', '>= 2.7.23'
   gem.add_dependency 'facter', '~> 1.7.3'
   gem.add_dependency 'grit', '~> 2.5.0'
   gem.add_dependency 'stomp', '~> 1.3.1'
