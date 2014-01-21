@@ -1,4 +1,4 @@
-/var/log/puppet/*.log {
+/var/log/puppet/msg*.log {
     missingok
     notifempty
     sharedscripts

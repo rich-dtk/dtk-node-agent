@@ -6,10 +6,13 @@ Code that is present in AMIs that server basis for nodes being spun up
 ### Build the gem:
 `gem build dtk-node-agent.gemspec`
 
-### Intalling the node agent on an existing AMI
+#### Intalling the node agent on a running machine (without puppet omnibus)
 `sudo dtk-node-agent`
 
-### Install the agent and create a new AMI image
+#### Intalling the node agent on a running machine (with puppet omnibus)
+`sudo ./install_agent.sh`
+
+#### Create a new AMI image with the node agent
 ```
 ./create_agent_ami.rb --help
 Options:
@@ -29,7 +32,7 @@ Options:
 example:  
 ```
 ruby create_agent_ami.rb --region us-east-1 --ami-id ami-da0000aa --key-pair test_key --key-path /somepath/test_key.pem \
---ssh-username root --image-name r8-agent-ubuntu-precise
+--ssh-username root --image-name dtk-agent-ubuntu-precise
 ```
 
 
