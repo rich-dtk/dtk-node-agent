@@ -1,0 +1,81 @@
+{
+  "variables": {
+    "aws_access_key": "",
+    "aws_secret_key": ""
+  },
+  "builders": [{
+    "name": "precise",
+    "type": "amazon-ebs",
+    "access_key": "{{user `aws_access_key`}}",
+    "secret_key": "{{user `aws_secret_key`}}",
+    "region": "us-east-1",
+    "source_ami": "ami-83dee0ea",
+    "instance_type": "t1.micro",
+    "ssh_username": "ubuntu",
+    "ami_regions": ["us-west-1", "us-west-2", "eu-west-1", "ap-southeast-1", "ap-southeast-2", "ap-northeast-1", "sa-east-1"],
+    "ami_name": "dtk-agent-precise-{{timestamp}}"
+  },
+  {
+    "type": "amazon-ebs",
+    "name": "lucid",
+    "access_key": "{{user `aws_access_key`}}",
+    "secret_key": "{{user `aws_secret_key`}}",
+    "region": "us-east-1",
+    "source_ami": "ami-6b350a02",
+    "instance_type": "t1.micro",
+    "ssh_username": "ubuntu",
+    "ami_regions": ["us-west-1", "us-west-2", "eu-west-1", "ap-southeast-1", "ap-southeast-2", "ap-northeast-1", "sa-east-1"],
+    "ami_name": "dtk-agent-lucid-{{timestamp}}"
+  },  
+  {
+    "type": "amazon-ebs",
+    "name": "saucy",
+    "access_key": "{{user `aws_access_key`}}",
+    "secret_key": "{{user `aws_secret_key`}}",
+    "region": "us-east-1",
+    "source_ami": "ami-1f7e4f76",
+    "instance_type": "t1.micro",
+    "ssh_username": "ubuntu",
+    "ami_regions": ["us-west-1", "us-west-2", "eu-west-1", "ap-southeast-1", "ap-southeast-2", "ap-northeast-1", "sa-east-1"],
+    "ami_name": "dtk-agent-saucy-{{timestamp}}"
+  },
+  {
+    "type": "amazon-ebs",
+    "name": "wheezy",
+    "access_key": "{{user `aws_access_key`}}",
+    "secret_key": "{{user `aws_secret_key`}}",
+    "region": "us-east-1",
+    "source_ami": "ami-0da18864",
+    "instance_type": "t1.micro",
+    "ssh_username": "admin",
+    "ami_regions": ["us-west-1", "us-west-2", "eu-west-1", "ap-southeast-1", "ap-southeast-2", "ap-northeast-1", "sa-east-1"],
+    "ami_name": "dtk-agent-wheezy-{{timestamp}}"
+  },
+  {
+    "type": "amazon-ebs",
+    "name": "centos64",
+    "access_key": "{{user `aws_access_key`}}",
+    "secret_key": "{{user `aws_secret_key`}}",
+    "region": "us-east-1",
+    "source_ami": "ami-eb6b0182",
+    "instance_type": "t1.micro",
+    "ssh_username": "root",
+    "ssh_timeout": "4m",
+    "ami_regions": ["us-west-1", "us-west-2", "eu-west-1", "ap-southeast-1", "ap-southeast-2", "ap-northeast-1", "sa-east-1"],
+    "ami_name": "dtk-agent-centos64-{{timestamp}}"
+  }
+
+  ],
+
+  "provisioners": [
+    {   "type": "file",
+        "source": "{{pwd}}",
+        "destination": "/tmp"
+
+    },
+    {
+        "type": "shell",
+        "inline": ["sudo bash /tmp/dtk-node-agent/install_agent.sh"]
+    }
+  ]
+}
