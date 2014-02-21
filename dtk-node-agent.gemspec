@@ -13,6 +13,7 @@ Gem::Specification.new do |gem|
   gem.description   = %q{DTK node agent is tool used to install and configure DTK agents.}
   gem.summary       = %q{DTK ndoe agent tool.}
   gem.homepage      = "https://github.com/rich-reactor8/dtk-node-agent"
+  gem.licenses      = ["GPL-3.0"]
 
   gem.files = %w(README.md Gemfile Gemfile.lock dtk-node-agent.gemspec)
   gem.files += Dir.glob("bin/**/*")
