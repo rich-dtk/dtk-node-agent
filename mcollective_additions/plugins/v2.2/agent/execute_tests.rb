@@ -25,7 +25,7 @@ module MCollective
 
           spec_results=`rspec /etc/puppet/modules/#{component_module}/tests/serverspec/spec/localhost/#{component}/*_spec.rb --format j`
           @log.info("Executing serverspec test: /etc/puppet/modules/#{component_module}/tests/serverspec/spec/localhost/#{component}/*_spec.rb")
-          spec_results_json =  JSON.parse(spec_results)
+          spec_results_json = JSON.parse(spec_results)
 
           spec_results_json['examples'].each do |spec|
             spec_result = {}
@@ -37,7 +37,7 @@ module MCollective
           end
         end
 
-        reply[:data]  = all_spec_results
+        reply[:data] = all_spec_results
         reply[:pbuilderid] = Facts["pbuilderid"]
         reply[:status] = :ok
       end
