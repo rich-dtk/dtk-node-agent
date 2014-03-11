@@ -17,6 +17,8 @@ module MCollective
         request[:components].each do |c|
           if c.include? "::"
             components << c.split("::").last
+          elsif c.include? "/"
+            components << c.split("/").last
           else
             components << c
           end
