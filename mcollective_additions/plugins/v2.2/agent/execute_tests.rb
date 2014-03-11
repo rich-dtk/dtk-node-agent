@@ -23,7 +23,7 @@ module MCollective
           component_module = module_info[:module_name]
           component = module_info[:component_name]
 
-          spec_results=`rspec /etc/puppet/modules/#{component_module}/tests/serverspec/spec/localhost/#{component}/*_spec.rb --format j`
+          spec_results=`/opt/puppet-omnibus/embedded/bin/rspec /etc/puppet/modules/#{component_module}/tests/serverspec/spec/localhost/#{component}/*_spec.rb --format j`
           @log.info("Executing serverspec test: /etc/puppet/modules/#{component_module}/tests/serverspec/spec/localhost/#{component}/*_spec.rb")
           spec_results_json = JSON.parse(spec_results)
 
