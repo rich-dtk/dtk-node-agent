@@ -13,11 +13,19 @@ module MCollective
         ModuleInfo = Struct.new(:module_name, :component_name)
         modules_info = []
 
+        components = []
+        request[:components].each do |c|
+          if c.include? "::"
+            components << c.split("::").last
+          else
+            components << c
+          end
+        end
+
         list_output.each do |line|
           match = line.match(regex_pattern)
-
-          request[:components].each do |c|
-            if c.include? match[2]
+          components.each do |c|
+            if c.eql? match[2]
               modules_info << ModuleInfo.new(match[1],match[2])
             end
           end
