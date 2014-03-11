@@ -15,10 +15,17 @@ module MCollective
 
         list_output.each do |line|
           match = line.match(regex_pattern)
-          modules_info << ModuleInfo.new(match[1],match[2])
+
+          request[:components].each do |c|
+            if c.include? match[2]
+              modules_info << ModuleInfo.new(match[1],match[2])
+            end
+          end
         end
 
         all_spec_results = []
+        #filter out redundant module info if any
+        modules_info = modules_info.uniq
         modules_info.each do |module_info|
           component_module = module_info[:module_name]
           component = module_info[:component_name]
