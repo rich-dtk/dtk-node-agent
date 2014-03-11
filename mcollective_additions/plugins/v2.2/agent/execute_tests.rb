@@ -8,8 +8,8 @@ module MCollective
 
       action "execute_tests" do 
         #Get list of component modules that have spec tests
-        list_output=`ls /etc/puppet/modules/*/tests/serverspec/spec/localhost/*/*_spec.rb`
-        regex_pattern=/modules\/(.+)\/tests\/serverspec\/spec\/localhost\/(.+)\//
+        list_output=`ls /etc/puppet/modules/*/dtk/serverspec/spec/localhost/*/*_spec.rb`
+        regex_pattern=/modules\/(.+)\/dtk\/serverspec\/spec\/localhost\/(.+)\//
         ModuleInfo = Struct.new(:module_name, :component_name)
         modules_info = []
 
@@ -25,6 +25,7 @@ module MCollective
 
           spec_results=`/opt/puppet-omnibus/embedded/bin/rspec /etc/puppet/modules/#{component_module}/tests/serverspec/spec/localhost/#{component}/*_spec.rb --format j`
           @log.info("Executing serverspec test: /etc/puppet/modules/#{component_module}/tests/serverspec/spec/localhost/#{component}/*_spec.rb")
+
           spec_results_json = JSON.parse(spec_results)
 
           spec_results_json['examples'].each do |spec|
