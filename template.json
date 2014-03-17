@@ -13,7 +13,8 @@
     "instance_type": "t1.micro",
     "ssh_username": "ubuntu",
     "ami_regions": ["us-west-1", "us-west-2", "eu-west-1", "ap-southeast-1", "ap-southeast-2", "ap-northeast-1", "sa-east-1"],
-    "ami_name": "dtk-agent-precise-{{timestamp}}"
+    "ami_name": "dtk-agent-precise-{{timestamp}}",
+    "ami_groups": ["all"]
   },
   {
     "type": "amazon-ebs",
@@ -25,7 +26,8 @@
     "instance_type": "t1.micro",
     "ssh_username": "ubuntu",
     "ami_regions": ["us-west-1", "us-west-2", "eu-west-1", "ap-southeast-1", "ap-southeast-2", "ap-northeast-1", "sa-east-1"],
-    "ami_name": "dtk-agent-lucid-{{timestamp}}"
+    "ami_name": "dtk-agent-lucid-{{timestamp}}",
+    "ami_groups": ["all"]
   },  
   {
     "type": "amazon-ebs",
@@ -37,7 +39,8 @@
     "instance_type": "t1.micro",
     "ssh_username": "ubuntu",
     "ami_regions": ["us-west-1", "us-west-2", "eu-west-1", "ap-southeast-1", "ap-southeast-2", "ap-northeast-1", "sa-east-1"],
-    "ami_name": "dtk-agent-saucy-{{timestamp}}"
+    "ami_name": "dtk-agent-saucy-{{timestamp}}",
+    "ami_groups": ["all"]
   },
   {
     "type": "amazon-ebs",
@@ -45,24 +48,27 @@
     "access_key": "{{user `aws_access_key`}}",
     "secret_key": "{{user `aws_secret_key`}}",
     "region": "us-east-1",
-    "source_ami": "ami-0da18864",
+    "source_ami": "ami-d3675dba",
     "instance_type": "t1.micro",
     "ssh_username": "admin",
+    "ssh_timeout": "4m",
     "ami_regions": ["us-west-1", "us-west-2", "eu-west-1", "ap-southeast-1", "ap-southeast-2", "ap-northeast-1", "sa-east-1"],
-    "ami_name": "dtk-agent-wheezy-{{timestamp}}"
+    "ami_name": "dtk-agent-wheezy-{{timestamp}}",
+    "ami_groups": ["all"]
   },
   {
     "type": "amazon-ebs",
-    "name": "centos64",
+    "name": "centos6",
     "access_key": "{{user `aws_access_key`}}",
     "secret_key": "{{user `aws_secret_key`}}",
     "region": "us-east-1",
-    "source_ami": "ami-eb6b0182",
+    "source_ami": "ami-52009e3b",
     "instance_type": "t1.micro",
-    "ssh_username": "root",
+    "ssh_username": "ec2-user",
     "ssh_timeout": "4m",
     "ami_regions": ["us-west-1", "us-west-2", "eu-west-1", "ap-southeast-1", "ap-southeast-2", "ap-northeast-1", "sa-east-1"],
-    "ami_name": "dtk-agent-centos64-{{timestamp}}"
+    "ami_name": "dtk-agent-centos6-{{timestamp}}",
+    "ami_groups": ["all"]
   }
 
   ],
