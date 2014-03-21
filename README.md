@@ -35,6 +35,12 @@ ruby create_agent_ami.rb --region us-east-1 --ami-id ami-da0000aa --key-pair tes
 --ssh-username root --image-name dtk-agent-ubuntu-precise
 ```
 
+#### Build all supported AMI images with [packer](http://www.packer.io/) 
+```
+packer build template.json
+```  
+This will also copy images to all AWS regions.  
+
 License
 ----------------------
 DTK Node Agent is released under the GPLv3 license. Please see LICENSE for more details.
