@@ -14,19 +14,23 @@ module MCollective
         validate :system_user, String
 
         if does_user_exist?(request[:system_user])
-          ::MCollective::Util.loadclass("MCollective::Util::PuppetRunner")
-          ::MCollective::Util::PuppetRunner.apply(
-            :ssh_authorized_key,
-            {
-              :name => request[:rsa_pub_name],
-              :ensure => 'present',
-              :key =>normalize_rsa_pub_key(request[:rsa_pub_key]),
-              :type => 'ssh-rsa',
-              :user => request[:system_user]
-            }
-          )
+          begin 
+            ::MCollective::Util.loadclass("MCollective::Util::PuppetRunner")
+            ::MCollective::Util::PuppetRunner.apply(
+              :ssh_authorized_key,
+              {
+                :name => request[:rsa_pub_name],
+                :ensure => 'present',
+                :key =>normalize_rsa_pub_key(request[:rsa_pub_key]),
+                :type => 'ssh-rsa',
+                :user => request[:system_user]
+              }
+            )
 
-          reply[:data] = { :message => "Access to system user '#{request[:system_user]}' has been granted for '#{request[:rsa_pub_name]}'"}
+            reply[:data] = { :message => "Access to system user '#{request[:system_user]}' has been granted for '#{request[:rsa_pub_name]}'"}
+          rescue Exception => e
+            reply[:data] = { :error => "Puppet error not able to process request, reason: '#{e.message}'" }
+          end
         else
           reply[:data] = { :error => "System user '#{request[:system_user]}' not found on given node" }
         end
@@ -40,17 +44,21 @@ module MCollective
         validate :system_user, String
 
         if does_user_exist?(request[:system_user])
-          ::MCollective::Util.loadclass("MCollective::Util::PuppetRunner")
-          ::MCollective::Util::PuppetRunner.apply(
-            :ssh_authorized_key,
-            {
-              :name => request[:rsa_pub_name],
-              :ensure => 'absent',
-              :type => 'ssh-rsa',
-              :user => request[:system_user]
-           }
-          )
-          reply[:data] = { :message => "Access for system user '#{request[:system_user]}' has been revoked" }
+          begin
+            ::MCollective::Util.loadclass("MCollective::Util::PuppetRunner")
+            ::MCollective::Util::PuppetRunner.apply(
+              :ssh_authorized_key,
+              {
+                :name => request[:rsa_pub_name],
+                :ensure => 'absent',
+                :type => 'ssh-rsa',
+                :user => request[:system_user]
+             }
+            )
+            reply[:data] = { :message => "Access for system user '#{request[:system_user]}' has been revoked" }
+          rescue Exception => e
+            reply[:data] = { :error => "Puppet error not able to process request, reason: '#{e.message}'" }
+          end
         else
           reply[:data] = { :error => "System user '#{request[:system_user]}' not found on given node" }
         end
