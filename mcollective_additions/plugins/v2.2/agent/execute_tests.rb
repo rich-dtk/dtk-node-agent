@@ -6,18 +6,17 @@ module MCollective
         @log = Log.instance
       end
 
-      action "execute_tests" do 
+      action "execute_tests" do
         #Get list of component modules that have spec tests
         list_output=`ls /etc/puppet/modules/*/dtk/serverspec/spec/localhost/*/*_spec.rb`
         regex_pattern=/modules\/(.+)\/dtk\/serverspec\/spec\/localhost\/(.+)\//
-        ModuleInfo = Struct.new(:module_name, :component_name)
+        ModuleInfo = Struct.new(:module_name, :component_name, :full_component_name)
         modules_info = []
 
         components = []
+        #Strip away node part (/)...leave only part which represent full component name
         request[:components].each do |c|
-          if c.include? "::"
-            components << c.split("::").last
-          elsif c.include? "/"
+          if c.include? "/"
             components << c.split("/").last
           else
             components << c
@@ -27,8 +26,11 @@ module MCollective
         list_output.each do |line|
           match = line.match(regex_pattern)
           components.each do |c|
-            if c.eql? match[2]
-              modules_info << ModuleInfo.new(match[1],match[2])
+            if c.include? "::"
+              stripped_c = c.split("::").last
+              modules_info << ModuleInfo.new(match[1],match[2],c) if stripped_c.eql? match[2]
+            elsif c.eql? match[2]
+              modules_info << ModuleInfo.new(match[1],match[2],c)
             end
           end
         end
@@ -38,17 +40,18 @@ module MCollective
         modules_info = modules_info.uniq
         modules_info.each do |module_info|
           component_module = module_info[:module_name]
-          component = module_info[:component_name]
+          component_name = module_info[:component_name]
+          full_component_name = module_info[:full_component_name]
 
-          spec_results=`/opt/puppet-omnibus/embedded/bin/rspec /etc/puppet/modules/#{component_module}/dtk/serverspec/spec/localhost/#{component}/*_spec.rb --format j`
-          @log.info("Executing serverspec test: /etc/puppet/modules/#{component_module}/tests/serverspec/spec/localhost/#{component}/*_spec.rb")
+          spec_results=`/opt/puppet-omnibus/embedded/bin/rspec /etc/puppet/modules/#{component_module}/dtk/serverspec/spec/localhost/#{component_name}/*_spec.rb --format j`
+          @log.info("Executing serverspec test: /etc/puppet/modules/#{component_module}/tests/serverspec/spec/localhost/#{component_name}/*_spec.rb")
 
           spec_results_json = JSON.parse(spec_results)
 
           spec_results_json['examples'].each do |spec|
             spec_result = {}
             spec_result.store(:module_name, component_module)
-            spec_result.store(:component_name, component)
+            spec_result.store(:component_name, full_component_name)
             spec_result.store(:test_result, spec['full_description'])
             spec_result.store(:status, spec['status'])
             all_spec_results << spec_result
