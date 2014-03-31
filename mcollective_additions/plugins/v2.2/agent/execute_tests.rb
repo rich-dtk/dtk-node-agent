@@ -6,6 +6,42 @@ module MCollective
         @log = Log.instance
       end
 
+      def pull_modules(modules_info, git_server)
+        ENV['GIT_SHELL'] = nil #This is put in because if vcsrepo Puppet module used it sets this
+        begin
+          modules_info.each do |mf|
+            repo_dir = "#{ModulePath}/#{mf[:module_name]}"
+            remote_repo = "#{git_server}:dtk17-client-#{mf[:module_name]}"
+            opts = Hash.new
+            begin
+              if File.exists?(repo_dir)
+                @log.info("Branch already exists. Checkout to branch and pull latest changes...")
+                git_repo = ::DTK::NodeAgent::GitClient.new(repo_dir)
+                #workspace-private is fake branch but these data will be provided from server with correct branch to pull
+                git_repo.pull_and_checkout_branch?("workspace-private",opts)
+              else
+                @log.info("Branch does not exist. Cloning branch...")
+                git_repo = ::DTK::NodeAgent::GitClient.new(repo_dir,:create=>true)
+                #workspace-private is fake branch but these data will be provided from server with correct branch to pull
+                git_repo.clone_branch(remote_repo,"workspace-private",opts)
+              end
+            rescue Exception => e
+              log_error(e)
+              #to achieve idempotent behavior; fully remove directory if any problems
+              FileUtils.rm_rf repo_dir
+              raise e
+            end
+          end
+        rescue Exception => e
+          log_error(e)
+        end
+      end
+
+      def log_error(e)
+        log_error = ([e.inspect]+backtrace_subset(e)).join("\n")
+        @log.info("\n----------------error-----\n#{log_error}\n----------------error-----")
+      end
+
       action "execute_tests" do
         #Get list of component modules that have spec tests
         list_output=`ls /etc/puppet/modules/*/dtk/serverspec/spec/localhost/*/*_spec.rb`
@@ -38,6 +74,12 @@ module MCollective
         all_spec_results = []
         #filter out redundant module info if any
         modules_info = modules_info.uniq
+
+        #perform git checkout and git pull for components that have branch in format: ...--assembly-...
+        git_server = Facts["git-server"]
+        #Will enable this call when pull_modules is completed
+        #response = pull_modules(modules_info,git_server)
+
         modules_info.each do |module_info|
           component_module = module_info[:module_name]
           component_name = module_info[:component_name]
