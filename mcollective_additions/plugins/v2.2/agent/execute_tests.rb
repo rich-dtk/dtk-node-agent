@@ -6,31 +6,27 @@ module MCollective
         @log = Log.instance
       end
 
-      def pull_modules(modules_info, git_server)
+      def pull_modules(module_version_context, git_server)
         ENV['GIT_SHELL'] = nil #This is put in because if vcsrepo Puppet module used it sets this
         begin
-          modules_info.each do |mf|
-            repo_dir = "#{ModulePath}/#{mf[:module_name]}"
-            remote_repo = "#{git_server}:dtk17-client-#{mf[:module_name]}"
-            opts = Hash.new
-            begin
-              if File.exists?(repo_dir)
-                @log.info("Branch already exists. Checkout to branch and pull latest changes...")
-                git_repo = ::DTK::NodeAgent::GitClient.new(repo_dir)
-                #workspace-private is fake branch but these data will be provided from server with correct branch to pull
-                git_repo.pull_and_checkout_branch?("workspace-private",opts)
-              else
-                @log.info("Branch does not exist. Cloning branch...")
-                git_repo = ::DTK::NodeAgent::GitClient.new(repo_dir,:create=>true)
-                #workspace-private is fake branch but these data will be provided from server with correct branch to pull
-                git_repo.clone_branch(remote_repo,"workspace-private",opts)
-              end
-            rescue Exception => e
-              log_error(e)
-              #to achieve idempotent behavior; fully remove directory if any problems
-              FileUtils.rm_rf repo_dir
-              raise e
+          repo_dir = "#{ModulePath}/#{module_version_context[:implementation]}"
+          remote_repo = "#{git_server}:#{module_version_context[:repo]}"
+          opts = Hash.new
+          begin
+            if File.exists?(repo_dir)
+              @log.info("Branch already exists. Checkout to branch and pull latest changes...")
+              git_repo = ::DTK::NodeAgent::GitClient.new(repo_dir)
+              git_repo.pull_and_checkout_branch?(module_version_context[:branch],opts)
+            else
+              @log.info("Branch does not exist. Cloning branch...")
+              git_repo = ::DTK::NodeAgent::GitClient.new(repo_dir,:create=>true)
+              git_repo.clone_branch(remote_repo,module_version_context[:branch],opts)
             end
+          rescue Exception => e
+            log_error(e)
+            #to achieve idempotent behavior; fully remove directory if any problems
+            FileUtils.rm_rf repo_dir
+            raise e
           end
         rescue Exception => e
           log_error(e)
@@ -74,22 +70,21 @@ module MCollective
         all_spec_results = []
         #filter out redundant module info if any
         modules_info = modules_info.uniq
-
-        #perform git checkout and git pull for components that have branch in format: ...--assembly-...
+        #Pull latest changes for modules if any
         git_server = Facts["git-server"]
-        #Will enable this call when pull_modules is completed
-        #response = pull_modules(modules_info,git_server)
 
         modules_info.each do |module_info|
           component_module = module_info[:module_name]
           component_name = module_info[:component_name]
           full_component_name = module_info[:full_component_name]
+          #Filter out version context for modules that don't exist on node
+          filtered_version_context = request[:version_context].select { |x| x[:implementation] == module_info[:module_name] }.first
+          pull_modules(filtered_version_context,git_server)       
 
           spec_results=`/opt/puppet-omnibus/embedded/bin/rspec /etc/puppet/modules/#{component_module}/dtk/serverspec/spec/localhost/#{component_name}/*_spec.rb --format j`
           @log.info("Executing serverspec test: /etc/puppet/modules/#{component_module}/tests/serverspec/spec/localhost/#{component_name}/*_spec.rb")
 
           spec_results_json = JSON.parse(spec_results)
-
           spec_results_json['examples'].each do |spec|
             spec_result = {}
             spec_result.store(:module_name, component_module)
