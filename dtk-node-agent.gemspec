@@ -33,6 +33,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'grit', '~> 2.5.0'
   gem.add_dependency 'stomp', '~> 1.3.1'
   gem.add_dependency 'sshkeyauth', '~> 0.0.11'
-  gem.add_dependency 'serverspec'
+  gem.add_dependency 'serverspec', '~> 1.1.0'
+  gem.add_dependency 'specinfra', '~> 1.0.4'
 
 end
