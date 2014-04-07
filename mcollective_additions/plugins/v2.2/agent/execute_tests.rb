@@ -82,7 +82,7 @@ module MCollective
           pull_modules(filtered_version_context,git_server)       
 
           spec_results=`/opt/puppet-omnibus/embedded/bin/rspec /etc/puppet/modules/#{component_module}/dtk/serverspec/spec/localhost/#{component_name}/*_spec.rb --format j`
-          @log.info("Executing serverspec test: /etc/puppet/modules/#{component_module}/tests/serverspec/spec/localhost/#{component_name}/*_spec.rb")
+          @log.info("Executing serverspec test: /etc/puppet/modules/#{component_module}/dtk/serverspec/spec/localhost/#{component_name}/*_spec.rb")
 
           spec_results_json = JSON.parse(spec_results)
           spec_results_json['examples'].each do |spec|
