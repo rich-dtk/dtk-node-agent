@@ -1,3 +1,3 @@
 module DtkNodeAgent
-  VERSION="0.5.10"
+  VERSION="0.5.12"
 end
