@@ -4,7 +4,7 @@ module MCollective
   module Agent
     class Ssh_agent < RPC::Agent
 
-      AGENT_MCOLLECTIVE_LOCATION = "#{::MCollective::Config.instance.libdir}/mcollective/agent/"
+      AGENT_MCOLLECTIVE_LOCATION = "#{::MCollective::Config.instance.libdir.join}/mcollective/agent/"
       SSH_AUTH_KEYS_FILE_NAME    = "authorized_keys"
 
       action "grant_access" do
