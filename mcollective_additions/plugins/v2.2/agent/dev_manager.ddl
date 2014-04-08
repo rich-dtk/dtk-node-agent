@@ -4,6 +4,6 @@ metadata    :name        => "development manager",
             :license     => "",
             :version     => "",
             :url         => "",
-            :timeout     => 2
+            :timeout     => 10
 action "inject_agent", :description => "Injects agent content and restarts mcollective" do
 end
