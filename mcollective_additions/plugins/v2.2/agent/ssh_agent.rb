@@ -75,7 +75,7 @@ module MCollective
       end
 
       def does_user_exist?(system_user)
-        !File.open('/etc/passwd').grep(/home\/#{system_user}:/).empty?
+        !File.open('/etc/passwd').grep(/^#{system_user}:/).empty?
       end
 
       def key_added?(system_user, pub_key)
