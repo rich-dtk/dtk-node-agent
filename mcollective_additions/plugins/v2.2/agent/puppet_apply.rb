@@ -196,8 +196,8 @@ module MCollective
             stderr_msg = stderr_capture.read
             stderr_capture.close
             stderr_capture.unlink
-            if stderr_msg and not stderr_msg.empty?
-              ret[:errors] = (ret[:errors]||[]) + [{:message => stderr_msg, :type => "user_error" }]
+            if err_message = compile_error_message?(return_code,stderr_msg,log_file_path)
+              ret[:errors] = (ret[:errors]||[]) + [{:message => err_message, :type => "user_error" }]
               ret.set_status_failed!()
               Puppet::err stderr_msg 
               Puppet::info "(end)"
@@ -206,6 +206,19 @@ module MCollective
           Puppet::Util::Log.close_all()
         end
         ret 
+      end
+
+      def compile_error_message?(return_code,stderr_msg,log_file_path)
+        if stderr_msg and not stderr_msg.empty?
+          stderr_msg
+        elsif return_code != 0
+          if last_line = File.open(log_file_path).lines.map{|l|l}.last
+            #TODO: might be more general pattern to search
+            if last_line =~ /^.+Puppet \(err\):\s*(.+$)/
+              $1
+            end
+          end
+        end
       end
 
       def backtrace_subset(e)
