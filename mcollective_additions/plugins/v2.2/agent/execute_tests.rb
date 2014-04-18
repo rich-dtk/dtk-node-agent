@@ -73,31 +73,38 @@ module MCollective
         #Pull latest changes for modules if any
         git_server = Facts["git-server"]
 
-        modules_info.each do |module_info|
-          component_module = module_info[:module_name]
-          component_name = module_info[:component_name]
-          full_component_name = module_info[:full_component_name]
-          #Filter out version context for modules that don't exist on node
-          filtered_version_context = request[:version_context].select { |x| x[:implementation] == module_info[:module_name] }.first
-          pull_modules(filtered_version_context,git_server)       
+        begin
+          modules_info.each do |module_info|
+            component_module = module_info[:module_name]
+            component_name = module_info[:component_name]
+            full_component_name = module_info[:full_component_name]
+            #Filter out version context for modules that don't exist on node
+            filtered_version_context = request[:version_context].select { |x| x[:implementation] == module_info[:module_name] }.first
+            pull_modules(filtered_version_context,git_server)
 
-          spec_results=`/opt/puppet-omnibus/embedded/bin/rspec /etc/puppet/modules/#{component_module}/dtk/serverspec/spec/localhost/#{component_name}/*_spec.rb --format j`
-          @log.info("Executing serverspec test: /etc/puppet/modules/#{component_module}/dtk/serverspec/spec/localhost/#{component_name}/*_spec.rb")
+            @log.info("Executing serverspec test: /etc/puppet/modules/#{component_module}/dtk/serverspec/spec/localhost/#{component_name}/*_spec.rb")
+            spec_results=`/opt/puppet-omnibus/embedded/bin/rspec /etc/puppet/modules/#{component_module}/dtk/serverspec/spec/localhost/#{component_name}/*_spec.rb --format j 2>&1`
+            raise spec_results unless spec_results_json = JSON.parse(spec_results)
 
-          spec_results_json = JSON.parse(spec_results)
-          spec_results_json['examples'].each do |spec|
-            spec_result = {}
-            spec_result.store(:module_name, component_module)
-            spec_result.store(:component_name, full_component_name)
-            spec_result.store(:test_result, spec['full_description'])
-            spec_result.store(:status, spec['status'])
-            all_spec_results << spec_result
+            spec_results_json['examples'].each do |spec|
+              spec_result = {}
+              spec_result.store(:module_name, component_module)
+              spec_result.store(:component_name, full_component_name)
+              spec_result.store(:test_result, spec['full_description'])
+              spec_result.store(:status, spec['status'])
+              all_spec_results << spec_result
+            end
           end
+          reply[:data] = all_spec_results
+          reply[:pbuilderid] = Facts["pbuilderid"]
+          reply[:status] = :ok
+        rescue Exception => e
+          @log.info("Error while executing serverspec test")
+          @log.info(e.message)
+          reply[:data] = { :test_error => "#{e.message.lines.first}" }
+          reply[:pbuilderid] = Facts["pbuilderid"]
+          reply[:status] = :notok
         end
-
-        reply[:data] = all_spec_results
-        reply[:pbuilderid] = Facts["pbuilderid"]
-        reply[:status] = :ok
       end
     end
   end
