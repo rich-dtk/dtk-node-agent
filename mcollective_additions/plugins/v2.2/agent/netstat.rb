@@ -10,8 +10,8 @@ module MCollective
                   :timeout     => 2
       action "get_tcp_udp" do 
         output = `netstat -nltpu`
-        results = output.scan(/(^[a-z0-9]+)\s+(\d)\s+(\d)\s+([0-9:.*]+)\s+([0-9:.*]+)\s+(LISTEN)?\s+([0-9a-zA-Z\/\-: ]+)/m)
-
+        results = output.scan(/(^[a-z0-9]+)\s+(\d)\s+(\d)\s+([a-z0-9:.*]+)\s+([0-9:.*]+)\s+(LISTEN)?\s+([0-9a-zA-Z\/\-: ]+)/m)
+        
         netstat_result = []
         results.each do |result|
           netstat_packet = {}

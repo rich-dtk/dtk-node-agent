@@ -4,7 +4,7 @@ module MCollective
   module Agent
     class Ssh_agent < RPC::Agent
 
-      AGENT_MCOLLECTIVE_LOCATION = "#{::MCollective::Config.instance.libdir}/mcollective/agent/"
+      AGENT_MCOLLECTIVE_LOCATION = "#{::MCollective::Config.instance.libdir.join}/mcollective/agent/"
       SSH_AUTH_KEYS_FILE_NAME    = "authorized_keys"
 
       action "grant_access" do
@@ -75,7 +75,7 @@ module MCollective
       end
 
       def does_user_exist?(system_user)
-        !File.open('/etc/passwd').grep(/home\/#{system_user}:/).empty?
+        !File.open('/etc/passwd').grep(/^#{system_user}:/).empty?
       end
 
       def key_added?(system_user, pub_key)

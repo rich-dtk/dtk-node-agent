@@ -4,7 +4,7 @@ require 'grit'
 require 'tempfile'
 require 'fileutils'
 
-AGENT_MCOLLECTIVE_LOCATION = "#{::MCollective::Config.instance.libdir}/mcollective/agent/"
+AGENT_MCOLLECTIVE_LOCATION = "#{::MCollective::Config.instance.libdir.join}/mcollective/agent/"
 
 module MCollective
   module Agent

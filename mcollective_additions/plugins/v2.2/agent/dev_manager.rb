@@ -4,9 +4,8 @@ module MCollective
   module Agent
     class Dev_manager < RPC::Agent
 
-      AGENT_MCOLLECTIVE_LOCATION = "#{::MCollective::Config.instance.libdir}/mcollective/agent/"
-      @log = Log.instance
-
+      AGENT_MCOLLECTIVE_LOCATION = "#{::MCollective::Config.instance.libdir.join}/mcollective/agent/"
+ 
       action "inject_agent" do
         begin
 
@@ -31,7 +30,7 @@ module MCollective
           return ret
 
         rescue Exception => e
-          @log.error e
+          Log.instance.error e
           ret.set_status_failed!()
           error_info = { :error => { :message => "Error syncing agents: #{e}" } }
           ret.merge!(error_info)
