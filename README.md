@@ -37,6 +37,9 @@ ruby create_agent_ami.rb --region us-east-1 --ami-id ami-da0000aa --key-pair tes
 
 #### Build all supported AMI images with [packer](http://www.packer.io/) 
 ```
+export AWS_ACCESS_KEY="your aws access key"
+export AWS_SECRET_KEY="your aws secret key"
+
 packer build template.json
 ```  
 This will also copy images to all AWS regions.  

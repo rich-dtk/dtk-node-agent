@@ -31,15 +31,15 @@
   },  
   {
     "type": "amazon-ebs",
-    "name": "saucy",
+    "name": "trusty",
     "access_key": "{{user `aws_access_key`}}",
     "secret_key": "{{user `aws_secret_key`}}",
     "region": "us-east-1",
-    "source_ami": "ami-1f7e4f76",
+    "source_ami": "ami-018c9568",
     "instance_type": "t1.micro",
     "ssh_username": "ubuntu",
     "ami_regions": ["us-west-1", "us-west-2", "eu-west-1", "ap-southeast-1", "ap-southeast-2", "ap-northeast-1", "sa-east-1"],
-    "ami_name": "dtk-agent-saucy-{{timestamp}}",
+    "ami_name": "dtk-agent-trusty-{{timestamp}}",
     "ami_groups": ["all"]
   },
   {
