@@ -28,15 +28,17 @@ if [[ `which apt-get` ]]; then
 		# add the git core ppa
 		yes | sudo add-apt-repository ppa:git-core/ppa
 		apt-get update
-	fi;
+		wget "http://dtk-storage.s3.amazonaws.com/puppet-omnibus_3.3.2%2Bfpm0_amd64.deb" -O puppet-omnibus.deb
+	elif [[ ${osname} == 'Debian' ]]; then
+		wget "http://dtk-storage.s3.amazonaws.com/puppet-omnibus_3.3.2%2Bfpm0_amd64.debian.deb" -O puppet-omnibus.deb
+	fi
 	if [[ ${codename} == 'squeeze' ]]; then
 		echo "deb http://backports.debian.org/debian-backports squeeze-backports main" > /etc/apt/sources.list.d/squeeze-backports.list
 		apt-get update
 		apt-get -y install git/squeeze-backports
 	fi;
 	apt-get -y install git
-	# install puppet-omnibus
-	wget "http://dtk-storage.s3.amazonaws.com/puppet-omnibus_2.7.23-fpm0_amd64.deb" -O puppet-omnibus.deb
+	# install puppet-omnibus	
 	dpkg -i puppet-omnibus.deb
 	apt-get -y -f install
 	rm -rf puppet-omnibus.deb
@@ -49,7 +51,7 @@ elif [[ `which yum` ]]; then
 	if [[ ${release:0:1} == 5 ]]; then
 		wget http://dtk-storage.s3.amazonaws.com/puppet-omnibus-3.3.2.fpm0-1.x86_64.el5.rpm -O puppet-omnibus.rpm
 	elif [[ ${release:0:1} == 6 ]];then
-		wget http://dtk-storage.s3.amazonaws.com/puppet-omnibus-2.7.23.fpm0-1.x86_64.el6.rpm -O puppet-omnibus.rpm
+		wget http://dtk-storage.s3.amazonaws.com/puppet-omnibus-3.3.2.fpm0-1.x86_64.el6.rpm -O puppet-omnibus.rpm
 	fi;
 	yum -y --nogpgcheck localinstall puppet-omnibus.rpm
 	rm -rf puppet-omnibus.rpm
