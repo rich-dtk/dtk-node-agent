@@ -10,8 +10,8 @@ end
 Gem::Specification.new do |gem|
   gem.authors       = ["Rich PELAVIN"]
   gem.email         = ["rich@reactor8.com"]
-  gem.description   = %q{DTK node agent is tool used to install and configure DTK agents.}
-  gem.summary       = %q{DTK ndoe agent tool.}
+  gem.description   = %q{The DTK Node Agent runs on your nodes that you wish to manage using your DTK Server.  It comes pre-installed on all nodes created/managed by hosted DTK Server accounts.}
+  gem.summary       = %q{DTK Node Agent gem.}
   gem.homepage      = "https://github.com/rich-reactor8/dtk-node-agent"
   gem.licenses      = ["GPL-3.0"]
 
