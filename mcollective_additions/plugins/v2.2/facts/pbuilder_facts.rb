@@ -8,12 +8,14 @@ module MCollective
     class Pbuilder_facts < Base
 
       def load_facts_from_source
-        ret = {"pbuilderid" => get_pbuilderid()}
+        # ret = {"pbuilderid" => get_pbuilderid()}
+        ret = {}
         yaml_file = '/etc/mcollective/facts.yaml'
         if File.exists?(yaml_file)
           yaml_facts = YAML.load_file(yaml_file)
           ret.merge!(yaml_facts)
         end
+        ret.merge!("pbuilderid" => get_pbuilderid()) unless ret.keys.include?('pbuilderid')
         ret
       end
 
