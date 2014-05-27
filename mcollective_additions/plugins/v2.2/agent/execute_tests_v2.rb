@@ -90,6 +90,8 @@ module MCollective
               spec_result = {}
               spec_result.store(:module_name, component[:module_name])
               spec_result.store(:component_name, component_name)
+              spec_result.store(:test_component_name, component[:test_component])
+              spec_result.store(:test_name, component[:test_name])
               spec_result.store(:test_result, spec[:full_description])
               spec_result.store(:status, spec[:status])
               all_spec_results << spec_result
