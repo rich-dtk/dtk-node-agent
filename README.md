@@ -10,7 +10,7 @@ Code that is present in AMIs that server basis for nodes being spun up
 `sudo dtk-node-agent`
 
 #### Intalling the node agent on a running machine (with puppet omnibus)
-`sudo ./install_agent.sh`
+`sudo ./install_agent.sh [--sanitize]`
 
 #### Create a new AMI image with the node agent
 ```
