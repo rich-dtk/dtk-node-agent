@@ -212,7 +212,7 @@ module MCollective
         if stderr_msg and not stderr_msg.empty?
           stderr_msg
         elsif return_code != 0
-          if last_line = File.open(log_file_path).lines.map{|l|l}.last
+          if last_line = File.read(log_file_path).lines.last
             #TODO: might be more general pattern to search
             if last_line =~ /^.+Puppet \(err\):\s*(.+$)/
               $1
