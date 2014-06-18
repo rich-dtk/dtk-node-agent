@@ -9,9 +9,11 @@ ServerspecPath = "dtk/serverspec/spec/localhost"
 module MCollective
   module Agent
     class ServerSpecHelper
-      def execute(spec_path, vars={})
-        vars.each_pair do |k,v|
-          Thread.current[k] = v
+      def execute(spec_path, vars=[])
+        vars.each do |var|
+          var.each_pair do |k,v|
+            Thread.current[k] = v
+          end
         end
 
         config = RSpec.configuration
