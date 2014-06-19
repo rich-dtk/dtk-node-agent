@@ -4,7 +4,7 @@ require 'rspec/core/formatters/json_formatter'
 require 'json'
 
 ModulePath = "/etc/puppet/modules"
-ServerspecPath = "dtk/serverspec/spec/localhost"
+ServerspecPath = "serverspec/spec/localhost"
 
 module MCollective
   module Agent
@@ -77,7 +77,7 @@ module MCollective
             filtered_version_context = request[:version_context].select { |x| x[:implementation] == component[:module_name] }.first
             pull_modules(filtered_version_context,git_server)
 
-            test = all_tests.select { |test| test.include? component[:test_name] }
+            test = all_tests.select { |test| (test.include? component[:test_name]) && (test.include? component[:module_name]) }
             @log.info("Executing serverspec test: #{test.first}")
 
             spec_results = spec_helper.execute(test.first, component[:params])
