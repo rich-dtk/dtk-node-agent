@@ -50,10 +50,12 @@ module DTK
               shell "chkconfig mcollective on"
               shell "yum -y install git"
               # install ec2-run-user-data init script
-              FileUtils.cp("#{base_dir}/src/etc/init.d/ec2-run-user-data", "/etc/init.d/ec2-run-user-data") unless File.exist?("/etc/init.d/ec2-run-user-data")
-              shell "chmod +x /etc/init.d/ec2-run-user-data"
-              shell "chkconfig --level 345 ec2-run-user-data on"
-
+              # but only if the machine is running on AWS
+              if `dig +short instance-data.ec2.internal` != ''
+                FileUtils.cp("#{base_dir}/src/etc/init.d/ec2-run-user-data", "/etc/init.d/ec2-run-user-data") unless File.exist?("/etc/init.d/ec2-run-user-data")
+                shell "chmod +x /etc/init.d/ec2-run-user-data"
+                shell "chkconfig --level 345 ec2-run-user-data on"
+              end
             else
               echo "Unsuported OS for automatic agent installation. Exiting now..."
               exit(1)
