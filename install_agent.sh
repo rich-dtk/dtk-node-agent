@@ -39,7 +39,7 @@ if [[ `which apt-get` ]]; then
 	fi;
 	apt-get -y install git
 	# install puppet-omnibus	
-	dpkg -i puppet-omnibus.deb
+	dpkg --force-overwrite -i puppet-omnibus.deb
 	apt-get -y -f install
 	rm -rf puppet-omnibus.deb
 elif [[ `which yum` ]]; then
