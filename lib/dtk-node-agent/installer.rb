@@ -51,7 +51,7 @@ module DTK
               shell "yum -y install git"
               # install ec2-run-user-data init script
               # but only if the machine is running on AWS
-              if `dig +short instance-data.ec2.internal` != ''
+              if `host instance-data.ec2.internal`.include? 'has address'
                 FileUtils.cp("#{base_dir}/src/etc/init.d/ec2-run-user-data", "/etc/init.d/ec2-run-user-data") unless File.exist?("/etc/init.d/ec2-run-user-data")
                 shell "chmod +x /etc/init.d/ec2-run-user-data"
                 shell "chkconfig --level 345 ec2-run-user-data on"
