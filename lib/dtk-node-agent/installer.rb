@@ -31,7 +31,7 @@ module DTK
               puts "Installing MCollective..."
               shell "apt-get -y install mcollective"
             elsif Facter.operatingsystem == 'CentOS' || Facter.operatingsystem == 'RedHat'
-              shell "yum -y install yum-utils wget"
+              shell "yum -y install yum-utils wget bind-utils"
               case Facter.operatingsystemmajrelease
               when "5"
                 shell "rpm -ivh #{CONFIG[:puppetlabs_el5_rpm_repo]}"
