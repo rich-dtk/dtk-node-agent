@@ -69,7 +69,7 @@
     },
     {
         "type": "shell",
-        "inline": ["sudo bash /tmp/dtk-node-agent/install_agent.sh"]
+        "inline": ["sudo bash /tmp/dtk-node-agent/install_agent.sh --sanitize"]
     }
   ]
 }
