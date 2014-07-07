@@ -65,7 +65,6 @@ module MCollective
 
       action "execute_tests_v2" do
         spec_helper = ServerSpecHelper.new
-        all_tests = Dir["#{ModulePath}/*/#{ServerspecPath}/*.rb"]
         all_spec_results = []
 
         #Pull latest changes for modules if any
@@ -77,6 +76,8 @@ module MCollective
             filtered_version_context = request[:version_context].select { |x| x[:implementation] == component[:module_name] }.first
             pull_modules(filtered_version_context,git_server)
 
+            #all_tests needs to be calculated after the pull module done
+            all_tests = Dir["#{ModulePath}/*/#{ServerspecPath}/*.rb"]
             test = all_tests.select { |test| (test.include? component[:test_name]) && (test.include? component[:module_name]) }
             @log.info("Executing serverspec test: #{test.first}")
 
