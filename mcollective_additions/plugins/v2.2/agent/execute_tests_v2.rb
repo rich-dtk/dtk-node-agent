@@ -74,59 +74,52 @@ module MCollective
         #Pull latest changes for modules if any
         git_server = Facts["git-server"]
 
-        begin
-          request[:components].each do |component|
-            #Filter version context for modules that exist on node
-            filtered_version_context = request[:version_context].select { |x| x[:implementation] == component[:module_name] }.first
-            pull_modules(filtered_version_context,git_server)
+        request[:components].each do |component|
+          #Filter version context for modules that exist on node
+          filtered_version_context = request[:version_context].select { |x| x[:implementation] == component[:module_name] }.first
+          pull_modules(filtered_version_context,git_server)
 
-            component_name = ""
-            if component[:component].include? "/"
-              component_name = component[:component].split("/").last
-            else
-              component_name = component[:component]
-            end
+          component_name = ""
+          if component[:component].include? "/"
+            component_name = component[:component].split("/").last
+          else
+            component_name = component[:component]
+          end
 
-            #all_tests needs to be calculated after the pull module done
-            all_tests = Dir["#{ModulePath}/*/#{ServerspecPath}/*.rb"]
-            test = all_tests.select { |test| (test.include? component[:test_name]) && (test.include? component[:module_name]) }
-            @log.info("Executing serverspec test: #{test.first}")
-            spec_results = spec_helper.execute(test.first, component[:params])
+          #all_tests needs to be calculated after the pull module done
+          all_tests = Dir["#{ModulePath}/*/#{ServerspecPath}/*.rb"]
+          test = all_tests.select { |test| (test.include? component[:test_name]) && (test.include? component[:module_name]) }
+          @log.info("Executing serverspec test: #{test.first}")
+          spec_results = spec_helper.execute(test.first, component[:params])
 
-            spec_results = spec_helper.execute(test.first, component[:params])
-            if spec_results.is_a?(Hash)
-              spec_results[:examples].each do |spec|
-                spec_result = {}
-                spec_result.store(:module_name, component[:module_name])
-                spec_result.store(:component_name, component_name)
-                spec_result.store(:test_component_name, component[:test_component])
-                spec_result.store(:test_name, component[:test_name])
-                spec_result.store(:test_result, spec[:full_description])
-                spec_result.store(:status, spec[:status])
-                all_spec_results << spec_result
-              end
-            else
+          if spec_results.is_a?(Hash)
+            spec_results[:examples].each do |spec|
               spec_result = {}
               spec_result.store(:module_name, component[:module_name])
               spec_result.store(:component_name, component_name)
               spec_result.store(:test_component_name, component[:test_component])
               spec_result.store(:test_name, component[:test_name])
-              spec_result.store(:test_result, "N/A")
-              spec_result.store(:status, "failed")
-              spec_result.store(:test_error, spec_results)
-              raise Exception.new, spec_result              
+              spec_result.store(:test_result, spec[:full_description])
+              spec_result.store(:status, spec[:status])
+              all_spec_results << spec_result
             end
+          else
+            @log.info("Error while executing serverspec test")
+            @log.info(spec_results)
+            spec_result = {}
+            spec_result.store(:module_name, component[:module_name])
+            spec_result.store(:component_name, component_name)
+            spec_result.store(:test_component_name, component[:test_component])
+            spec_result.store(:test_name, component[:test_name])
+            spec_result.store(:test_result, "N/A")
+            spec_result.store(:status, "failed")
+            spec_result.store(:test_error, spec_results)
+            all_spec_results << spec_result              
           end
-          reply[:data] = all_spec_results
-          reply[:pbuilderid] = Facts["pbuilderid"]
-          reply[:status] = :ok
-        rescue Exception => e
-          @log.info("Error while executing serverspec test")
-          @log.info(e.message.inspect)
-          reply[:data] = e.message
-          reply[:pbuilderid] = Facts["pbuilderid"]
-          reply[:status] = :notok
         end
+        reply[:data] = all_spec_results
+        reply[:pbuilderid] = Facts["pbuilderid"]
+        reply[:status] = :ok
       end
     end
   end
