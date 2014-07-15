@@ -91,6 +91,7 @@ module MCollective
           test = all_tests.select { |test| (test.include? component[:test_name]) && (test.include? component[:module_name]) }
           @log.info("Executing serverspec test: #{test.first}")
           spec_results = spec_helper.execute(test.first, component[:params])
+          @log.info("Serverspec results: #{spec_results}")
 
           if spec_results.is_a?(Hash)
             spec_results[:examples].each do |spec|
@@ -101,11 +102,15 @@ module MCollective
               spec_result.store(:test_name, component[:test_name])
               spec_result.store(:test_result, spec[:full_description])
               spec_result.store(:status, spec[:status])
+
+              if spec[:status].include? "failed"
+                backtrace = spec[:exception][:backtrace].find { |x| x.include? "mongodb_test" }
+                error = backtrace + " " + spec[:exception][:class] + ": " + spec[:exception][:message]
+                spec_result.store(:test_error, error)
+              end
               all_spec_results << spec_result
             end
           else
-            @log.info("Error while executing serverspec test")
-            @log.info(spec_results)
             spec_result = {}
             spec_result.store(:module_name, component[:module_name])
             spec_result.store(:component_name, component_name)
@@ -114,7 +119,7 @@ module MCollective
             spec_result.store(:test_result, "N/A")
             spec_result.store(:status, "failed")
             spec_result.store(:test_error, spec_results)
-            all_spec_results << spec_result              
+            all_spec_results << spec_result
           end
         end
         reply[:data] = all_spec_results
