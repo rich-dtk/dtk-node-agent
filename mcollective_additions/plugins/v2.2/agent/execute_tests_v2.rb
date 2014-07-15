@@ -104,7 +104,7 @@ module MCollective
               spec_result.store(:status, spec[:status])
 
               if spec[:status].include? "failed"
-                backtrace = spec[:exception][:backtrace].find { |x| x.include? "mongodb_test" }
+                backtrace = spec[:exception][:backtrace].find { |x| x.include? component[:module_name] }
                 error = backtrace + " " + spec[:exception][:class] + ": " + spec[:exception][:message]
                 spec_result.store(:test_error, error)
               end
