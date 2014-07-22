@@ -20,7 +20,7 @@ base_dir="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 export PATH=$PATH:/sbin:/usr/sbin
 
 # check package manager used on the system and install appropriate packages/init scripts
-if [[ `which apt-get` ]]; then
+if [[ `command -v apt-get` ]]; then
 	apt-get update  --fix-missing
 	apt-get -y install python-software-properties build-essential wget curl lsb-release logrotate
 	getosinfo
@@ -42,7 +42,7 @@ if [[ `which apt-get` ]]; then
 	dpkg --force-overwrite -i puppet-omnibus.deb
 	apt-get -y -f install
 	rm -rf puppet-omnibus.deb
-elif [[ `which yum` ]]; then
+elif [[ `command -v yum` ]]; then
 	# install ruby and git
 	yum -y groupinstall "Development Tools"
 	yum -y install ruby rubygems ruby-devel wget redhat-lsb logrotate
