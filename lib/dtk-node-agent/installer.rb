@@ -133,6 +133,9 @@ module DTK
 
         # copy mcollective config
         FileUtils.cp_r("#{base_dir}/mcollective_additions/server.cfg", "/etc/mcollective", :remove_destination => true)
+
+        # copy compatible mcollective init script
+        FileUtils.cp_r("#{base_dir}/mcollective_additions/#{Facter.osfamily.downcase}.mcollective.init", "/etc/init.d/mcollective", :remove_destination => true)
       end
 
       def self.base_dir
