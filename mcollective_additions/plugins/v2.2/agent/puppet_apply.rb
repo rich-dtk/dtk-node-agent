@@ -65,10 +65,11 @@ module MCollective
             opts = Hash.new
             opts.merge!(:sha => vc[:sha]) if vc[:sha]
             begin
-              if File.exists?(repo_dir)
+              if File.exists?("#{repo_dir}/.git")
                 git_repo = ::DTK::NodeAgent::GitClient.new(repo_dir)
                 git_repo.pull_and_checkout_branch?(vc[:branch],opts)
               else
+                FileUtils.rm_rf repo_dir if File.exists?(repo_dir)
                 git_repo = ::DTK::NodeAgent::GitClient.new(repo_dir,:create=>true)
                 git_repo.clone_branch(remote_repo,vc[:branch],opts)
               end
