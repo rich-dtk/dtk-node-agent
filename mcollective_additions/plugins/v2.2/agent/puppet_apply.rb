@@ -64,20 +64,26 @@ module MCollective
             remote_repo = "#{git_server}:#{vc[:repo]}"
             opts = Hash.new
             opts.merge!(:sha => vc[:sha]) if vc[:sha]
-            begin
-              if File.exists?("#{repo_dir}/.git")
-                git_repo = ::DTK::NodeAgent::GitClient.new(repo_dir)
-                git_repo.pull_and_checkout_branch?(vc[:branch],opts)
-              else
-                FileUtils.rm_rf repo_dir if File.exists?(repo_dir)
-                git_repo = ::DTK::NodeAgent::GitClient.new(repo_dir,:create=>true)
-                git_repo.clone_branch(remote_repo,vc[:branch],opts)
+
+            clean_and_clone = true
+            if File.exists?("#{repo_dir}/.git")
+              pull_err = trap_and_return_error do
+                pull_module(repo_dir,vc[:branch],opts)
               end
-             rescue Exception => e
-              error_backtrace = backtrace_subset(e)
-              #to achieve idempotent behavior; fully remove directory if any problems
-              FileUtils.rm_rf repo_dir
-              raise e
+              # clean_and_clone set so if pull error then try again, this time cleaning dir and freshly cleaning
+              clean_and_clone = pull_err.nil?
+            end
+
+            if clean_and_clone
+              begin
+                clean_and_clone_module(repo_dir,remote_repo,vc[:branch],opts)
+               rescue Exception => e
+                # TODO: not used now
+                error_backtrace = backtrace_subset(e)
+                # to achieve idempotent behavior; fully remove directory if any problems
+                FileUtils.rm_rf repo_dir
+                raise e
+              end
             end
           end
           ret.set_status_succeeded!()
@@ -91,6 +97,28 @@ module MCollective
           %w{GIT_DIR GIT_INDEX_FILE GIT_WORK_TREE}.each{|var|ENV[var]=nil}
         end
         ret 
+      end
+
+      # returns a trapped error
+      def trap_and_return_error(&body)
+        error = nil
+        begin
+          yield
+         rescue => e
+          error = e
+        end
+        error
+      end
+
+      def pull_module(repo_dir,branch,opts={})
+        git_repo = ::DTK::NodeAgent::GitClient.new(repo_dir)
+        git_repo.pull_and_checkout_branch?(branch,opts)
+      end
+
+      def clean_and_clone_module(repo_dir,remote_repo,branch,opts={})
+        FileUtils.rm_rf repo_dir if File.exists?(repo_dir)
+        git_repo = ::DTK::NodeAgent::GitClient.new(repo_dir,:create=>true)
+        git_repo.clone_branch(remote_repo,branch,opts)
       end
 
       def run(request)
