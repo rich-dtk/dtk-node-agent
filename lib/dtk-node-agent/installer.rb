@@ -136,6 +136,7 @@ module DTK
 
         # copy compatible mcollective init script
         FileUtils.cp_r("#{base_dir}/mcollective_additions/#{Facter.osfamily.downcase}.mcollective.init", "/etc/init.d/mcollective", :remove_destination => true)
+        shell "chmod +x /etc/init.d/mcollective"
       end
 
       def self.base_dir
