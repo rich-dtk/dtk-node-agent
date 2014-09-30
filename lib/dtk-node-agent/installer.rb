@@ -22,6 +22,10 @@ module DTK
               # set up apt and install packages
               shell "apt-get update --fix-missing"
               shell "apt-get install -y build-essential wget curl git"
+              # install upgrades
+              Array(CONFIG[:upgrades][:debian]).each do |package|
+                shell "apt-get install -y #{package}"
+              end
               shell "wget http://apt.puppetlabs.com/puppetlabs-release-#{Facter.lsbdistcodename}.deb"
               puts "Installing Puppet Labs repository..."
               shell "dpkg -i puppetlabs-release-#{Facter.lsbdistcodename}.deb"
@@ -32,6 +36,10 @@ module DTK
               shell "apt-get -y install mcollective"
             elsif Facter.operatingsystem == 'CentOS' || Facter.operatingsystem == 'RedHat'
               shell "yum -y install yum-utils wget bind-utils"
+              # install upgrades
+              Array(CONFIG[:upgrades][:redhat]).each do |package|
+                shell "yum -y update #{package}"
+              end
               case Facter.operatingsystemmajrelease
               when "5"
                 shell "rpm -ivh #{CONFIG[:puppetlabs_el5_rpm_repo]}"
@@ -115,33 +123,33 @@ module DTK
           end
 
           def self.install_additions
-        # create puppet group
-        shell "groupadd puppet" unless `grep puppet /etc/group`.include? "puppet"
-        # create necessary dirs
-        [   '/var/log/puppet/',
-          '/var/lib/puppet/lib/puppet/indirector',
-          '/etc/puppet/modules',
-          '/usr/share/mcollective/plugins/mcollective'
-          ].map! { |p| FileUtils.mkdir_p(p) unless File.directory?(p) }
-        # copy puppet libs
-        FileUtils.cp_r(Dir.glob("#{base_dir}/puppet_additions/puppet_lib_base/puppet/indirector/*"), "/var/lib/puppet/lib/puppet/indirector/")
-        # copy r8 puppet module
-        FileUtils.cp_r(Dir.glob("#{base_dir}/puppet_additions/modules/r8"), "/etc/puppet/modules")
-        # copy mcollective plugins
-        FileUtils.cp_r(Dir.glob("/usr/libexec/mcollective/mcollective/*"), "/usr/share/mcollective/plugins/mcollective") if File.directory?("/usr/libexec/mcollective/")        
-        FileUtils.cp_r(Dir.glob("#{base_dir}/mcollective_additions/plugins/v#{CONFIG[:mcollective_version]}/*"), "/usr/share/mcollective/plugins/mcollective")
+            # create puppet group
+            shell "groupadd puppet" unless `grep puppet /etc/group`.include? "puppet"
+            # create necessary dirs
+            [   '/var/log/puppet/',
+              '/var/lib/puppet/lib/puppet/indirector',
+              '/etc/puppet/modules',
+              '/usr/share/mcollective/plugins/mcollective'
+              ].map! { |p| FileUtils.mkdir_p(p) unless File.directory?(p) }
+            # copy puppet libs
+            FileUtils.cp_r(Dir.glob("#{base_dir}/puppet_additions/puppet_lib_base/puppet/indirector/*"), "/var/lib/puppet/lib/puppet/indirector/")
+            # copy r8 puppet module
+            FileUtils.cp_r(Dir.glob("#{base_dir}/puppet_additions/modules/r8"), "/etc/puppet/modules")
+            # copy mcollective plugins
+            FileUtils.cp_r(Dir.glob("/usr/libexec/mcollective/mcollective/*"), "/usr/share/mcollective/plugins/mcollective") if File.directory?("/usr/libexec/mcollective/")        
+            FileUtils.cp_r(Dir.glob("#{base_dir}/mcollective_additions/plugins/v#{CONFIG[:mcollective_version]}/*"), "/usr/share/mcollective/plugins/mcollective")
 
-        # copy mcollective config
-        FileUtils.cp_r("#{base_dir}/mcollective_additions/server.cfg", "/etc/mcollective", :remove_destination => true)
+            # copy mcollective config
+            FileUtils.cp_r("#{base_dir}/mcollective_additions/server.cfg", "/etc/mcollective", :remove_destination => true)
 
-        # copy compatible mcollective init script
-        FileUtils.cp_r("#{base_dir}/mcollective_additions/#{Facter.osfamily.downcase}.mcollective.init", "/etc/init.d/mcollective", :remove_destination => true)
-        shell "chmod +x /etc/init.d/mcollective"
-      end
+            # copy compatible mcollective init script
+            FileUtils.cp_r("#{base_dir}/mcollective_additions/#{Facter.osfamily.downcase}.mcollective.init", "/etc/init.d/mcollective", :remove_destination => true)
+            shell "chmod +x /etc/init.d/mcollective"
+          end
 
-      def self.base_dir
-        File.expand_path('../..', File.dirname(__FILE__))
-      end
+          def self.base_dir
+            File.expand_path('../..', File.dirname(__FILE__))
+          end
 
     end
   end
