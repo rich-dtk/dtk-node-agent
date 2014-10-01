@@ -18,7 +18,7 @@ module DTK
           exit(1)
         end
 
-        if Facter.operatingsystem == 'Debian' || Facter.operatingsystem == 'Ubuntu'
+        if Facter.osfamily == 'Debian'
               # set up apt and install packages
               shell "apt-get update --fix-missing"
               shell "apt-get install -y build-essential wget curl git"
@@ -34,7 +34,7 @@ module DTK
               # install mcollective
               puts "Installing MCollective..."
               shell "apt-get -y install mcollective"
-            elsif Facter.operatingsystem == 'CentOS' || Facter.operatingsystem == 'RedHat'
+            elsif Facter.osfamily == 'RedHat'
               shell "yum -y install yum-utils wget bind-utils"
               # install upgrades
               Array(CONFIG[:upgrades][:redhat]).each do |package|
@@ -44,7 +44,8 @@ module DTK
               when "5"
                 shell "rpm -ivh #{CONFIG[:puppetlabs_el5_rpm_repo]}"
                 Facter.architecture == 'X86_64' ? (shell "rpm -ivh #{CONFIG[:rpm_forge_el5_X86_64_repo]}") : (shell "rpm -ivh #{CONFIG[:rpm_forge_el5_i686_repo]}")
-              when "6"
+              when "6", "n/a"
+                next unless Facter.operatingsystem == "Amazon"
                 shell "rpm -ivh #{CONFIG[:puppetlabs_el6_rpm_repo]}"
                 Facter.architecture == 'X86_64' ? (shell "rpm -ivh #{CONFIG[:rpm_forge_el6_X86_64_repo]}") : (shell "rpm -ivh #{CONFIG[:rpm_forge_el6_i686_repo]}")
                 shell "yum-config-manager --disable rpmforge-release"
@@ -65,7 +66,7 @@ module DTK
                 shell "chkconfig --level 345 ec2-run-user-data on"
               end
             else
-              echo "Unsuported OS for automatic agent installation. Exiting now..."
+              puts "Unsuported OS for automatic agent installation. Exiting now..."
               exit(1)
             end
 
