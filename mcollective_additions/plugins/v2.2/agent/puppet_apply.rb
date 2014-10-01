@@ -71,7 +71,7 @@ module MCollective
                 pull_module(repo_dir,vc[:branch],opts)
               end
               # clean_and_clone set so if pull error then try again, this time cleaning dir and freshly cleaning
-              clean_and_clone = pull_err.nil?
+              clean_and_clone = !pull_err.nil?
             end
 
             if clean_and_clone
