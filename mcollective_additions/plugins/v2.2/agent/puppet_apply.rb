@@ -579,7 +579,7 @@ module MCollective
       end
       def ln_s(target,link)
         File.delete(link) if File.exists? link
-        FileUtils.ln_s(target,link)
+        FileUtils.ln_s(target,link,:force => true)
       end
 
       class DTKPuppetCache
