@@ -8,7 +8,8 @@ require File.expand_path('dtk_node_agent_git_client',File.dirname(__FILE__))
 
 #TODO: move to be shared by agents
 PuppetApplyLogDir = "/var/log/puppet"
-ModulePath =  "/etc/puppet/modules"
+ModulePath        =  "/etc/puppet/modules"
+ManifestBasePath      = "/usr/share/dtk/tasks"
 
 module MCollective
   module Agent
@@ -29,6 +30,7 @@ module MCollective
         log_params()
         @reply_data = nil
         @msg_id = request.uniqid
+        @service_name = request[:service_name] || "UNKNOWN"
         @task_info = [:task_id,:top_task_id].inject({}) do |h,k|
           h.merge(k => request[k])
         end.merge(:msg_id => @msg_id)
@@ -143,6 +145,7 @@ module MCollective
         begin
           save_stderr = nil
           stderr_capture = nil
+          makedir(File.dirname(log_file_path))
           log_file = File.open(log_file_path,"a")
           log_file.close
           Puppet[:autoflush] = true
@@ -156,7 +159,11 @@ module MCollective
             execute_lines = puppet_manifest || ret_execute_lines(cmps_with_attrs)
             execute_string = execute_lines.join("\n")
             @log.info("\n----------------execute_string------------\n#{execute_string}\n----------------execute_string------------")
-            File.open("/tmp/site_stage#{inter_node_stage}_puppet_invocation_#{i+1}.pp","w"){|f| f << execute_string}
+            manifest_path = "#{ManifestBasePath}/#{@service_name}/#{task_id_info()}"
+            makedir(manifest_path)
+            File.open("#{manifest_path}/site_stage#{inter_node_stage}_puppet_invocation_#{i+1}.pp","w"){|f| f << execute_string}
+            # set the symlink to last_task
+            FileUtils.ln_s(manifest_path, "#{ManifestBasePath}/last_task", :force => true)
             cmd_line = 
               [
                "apply", 
@@ -555,7 +562,7 @@ module MCollective
       end
       
       def log_file_path()
-        "#{PuppetApplyLogDir}/#{id_info()}.log"
+        "#{ManifestBasePath}/#{@service_name}/#{task_id_info()}.log"
       end
       def most_recent_file_path()
         "#{PuppetApplyLogDir}/last.log"
@@ -566,6 +573,12 @@ module MCollective
             "#{k}:#{@task_info[k].to_s}"
           end
         end.compact.join(":")
+      end
+      def task_id_info()
+        "task_id:#{@task_info[:task_id] || 'unknown' }"
+      end
+      def makedir(path)
+        FileUtils.mkdir_p(path) unless File.directory?(path)
       end
 
       #TODO: this should be common accross Agents
