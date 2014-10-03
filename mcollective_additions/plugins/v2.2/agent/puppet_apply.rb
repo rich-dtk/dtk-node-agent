@@ -151,7 +151,7 @@ module MCollective
           log_file.close
           Puppet[:autoflush] = true
           most_recent_link = puppet_last_log_link()
-          symlink(log_file_path,most_recent_link)
+          ln_s(log_file_path,most_recent_link)
 
           # Amar: Node manifest contains list of generated puppet manifests
           #       This is done to support multiple puppet calls inside one puppet_apply agent call
@@ -162,8 +162,8 @@ module MCollective
             manifest_path = dtk_puppet_cache.task_dir()
             makedir(manifest_path)
             File.open("#{manifest_path}/site_stage#{inter_node_stage}_puppet_invocation_#{i+1}.pp","w"){|f| f << execute_string}
-            # set the symlink to last_task
-            symlink(manifest_path, dtk_puppet_cache.last_task_link())
+            # set the link to last_task
+            ln_s(manifest_path, dtk_puppet_cache.last_task_link())
             cmd_line = 
               [
                "apply", 
@@ -577,9 +577,9 @@ module MCollective
       def makedir(path)
         FileUtils.mkdir_p(path) unless File.directory?(path)
       end
-      def symlink(target,link)
+      def ln_s(target,link)
         File.delete(link) if File.exists? link
-        File.symlink(target,link)
+        FileUtils.ln_s(target,link)
       end
 
       class DTKPuppetCache
