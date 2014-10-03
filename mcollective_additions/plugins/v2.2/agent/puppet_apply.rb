@@ -9,7 +9,7 @@ require File.expand_path('dtk_node_agent_git_client',File.dirname(__FILE__))
 #TODO: move to be shared by agents
 PuppetApplyLogDir           = "/var/log/puppet"
 ModulePath                  =  "/etc/puppet/modules"
-DTKPuppetCacheBaseDir      = "/usr/share/dtk/tasks"
+DTKPuppetCacheBaseDir       = "/usr/share/dtk/tasks"
 
 module MCollective
   module Agent
@@ -141,12 +141,11 @@ module MCollective
         ret = nil
         # TODO: harmonize request[:top_task_id] and top_task_id()
         dtk_puppet_cache = DTKPuppetCache.new(@service_name,top_task_id())
-        log_file_path = dtk_puppet_cache.log_file_path()
+        log_file_path = dtk_puppet_cache.log_file_path(inter_node_stage)
         log_file = nil
         begin
           save_stderr = nil
           stderr_capture = nil
-          makedir(File.dirname(log_file_path))
           log_file = File.open(log_file_path,"a")
           log_file.close
           Puppet[:autoflush] = true
@@ -159,11 +158,13 @@ module MCollective
             execute_lines = puppet_manifest || ret_execute_lines(cmps_with_attrs)
             execute_string = execute_lines.join("\n")
             @log.info("\n----------------execute_string------------\n#{execute_string}\n----------------execute_string------------")
-            manifest_path = dtk_puppet_cache.task_dir()
-            makedir(manifest_path)
-            File.open("#{manifest_path}/site_stage#{inter_node_stage}_puppet_invocation_#{i+1}.pp","w"){|f| f << execute_string}
+            task_dir = dtk_puppet_cache.task_dir()
             # set the link to last_task
-            ln_s(manifest_path, dtk_puppet_cache.last_task_link())
+            ln_s(task_dir, dtk_puppet_cache.last_task_link())
+
+            manifest_path = dtk_puppet_cache.node_manifest_path(inter_node_stage,i+1)
+            File.open(manifest_path,"w"){|f| f << execute_string}
+
             cmd_line = 
               [
                "apply", 
@@ -572,11 +573,9 @@ module MCollective
         end.compact.join(":")
       end
       def top_task_id()
-        "task_id_#{@task_info[:top_task_id] || 'unknown' }"
+        "task_id_#{@task_info[:top_task_id] || @task_info[:task_id] || 'task' }"
       end
-      def makedir(path)
-        FileUtils.mkdir_p(path) unless File.directory?(path)
-      end
+
       def ln_s(target,link)
         File.delete(link) if File.exists? link
         FileUtils.ln_s(target,link,:force => true)
@@ -587,17 +586,31 @@ module MCollective
         def initialize(service_name,top_task_id)
           @service_name = service_name
           @top_task_id = top_task_id
-          FileUtils.mkdir_p(BaseDir) unless File.directory?(BaseDir)
         end
 
         def task_dir()
-          "#{BaseDir}/#{@service_name}/#{@top_task_id}"
+          @task_dir ||= mkdir_p("#{base_dir()}/#{@service_name}/#{@top_task_id}")
         end
-        def log_file_path()
-          "#{task_dir()}/puppet.log"
+
+        def log_file_path(stage)
+          "#{task_dir()}/stage-#{stage}-puppet.log"
         end
+        def node_manifest_path(stage,invocation)
+          "#{task_dir()}/site-stage-#{stage}-invocation-#{invocation}.pp"
+        end
+
         def last_task_link()
-          "#{BaseDir}/last_task"
+          "#{base_dir()}/last-task"
+        end
+
+       private
+        def base_dir()
+          @base_dir ||= mkdir_p(BaseDir)
+        end
+        
+        def mkdir_p(dir_path)
+          FileUtils.mkdir_p(dir_path)
+          dir_path
         end
       end
 
