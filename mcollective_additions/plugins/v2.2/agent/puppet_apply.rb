@@ -159,11 +159,13 @@ module MCollective
             execute_lines = puppet_manifest || ret_execute_lines(cmps_with_attrs)
             execute_string = execute_lines.join("\n")
             @log.info("\n----------------execute_string------------\n#{execute_string}\n----------------execute_string------------")
-            manifest_path = "#{ManifestBasePath}/#{@service_name}/#{task_id_info()}"
+            manifest_path = "#{ManifestBasePath}/#{@service_name}/#{top_task_id_info()}"
             makedir(manifest_path)
             File.open("#{manifest_path}/site_stage#{inter_node_stage}_puppet_invocation_#{i+1}.pp","w"){|f| f << execute_string}
             # set the symlink to last_task
-            FileUtils.ln_s(manifest_path, "#{ManifestBasePath}/last_task", :force => true)
+            last_task_link "#{ManifestBasePath}/last_task"
+            File.delete(last_task_link) if File.exists? last_task_link
+            FileUtils.ln_s(manifest_path, last_task_link)
             cmd_line = 
               [
                "apply", 
@@ -562,7 +564,7 @@ module MCollective
       end
       
       def log_file_path()
-        "#{ManifestBasePath}/#{@service_name}/#{task_id_info()}.log"
+        "#{ManifestBasePath}/#{@service_name}/#{top_task_id_info()}.log"
       end
       def most_recent_file_path()
         "#{PuppetApplyLogDir}/last.log"
@@ -574,8 +576,8 @@ module MCollective
           end
         end.compact.join(":")
       end
-      def task_id_info()
-        "task_id:#{@task_info[:task_id] || 'unknown' }"
+      def top_task_id_info()
+        "task_id:#{@task_info[:top_task_id] || 'unknown' }"
       end
       def makedir(path)
         FileUtils.mkdir_p(path) unless File.directory?(path)
