@@ -587,7 +587,7 @@ module MCollective
         def initialize(service_name,top_task_id)
           @service_name = service_name
           @top_task_id = top_task_id
-          Puppet_apply.makedir(BaseDir)
+          FileUtils.mkdir_p(BaseDir) unless File.directory?(BaseDir)
         end
 
         def task_dir()
