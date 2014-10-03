@@ -9,7 +9,19 @@ require File.expand_path('dtk_node_agent_git_client',File.dirname(__FILE__))
 #TODO: move to be shared by agents
 PuppetApplyLogDir = "/var/log/puppet"
 ModulePath        =  "/etc/puppet/modules"
-ManifestBasePath      = "/usr/share/dtk/tasks"
+
+module DTKPuppetCache
+  BasePath      = "/usr/share/dtk/tasks"
+  def self.task_dir(service_name,top_task_id)
+    "#{BasePath}/#{service_name}/#{top_task_id}"
+  end
+  def self.log_file_path(service_name,top_task_id)
+    "#{task_dir(service_name,top_task_id)}/puppet.log"
+  end
+  def self.last_task_link()
+    "#{BasePath}/last_task"
+  end
+end
 
 module MCollective
   module Agent
@@ -140,7 +152,7 @@ module MCollective
 
         clean_state()
         ret = nil
-        log_file_path = log_file_path()
+        log_file_path = DTKPuppetCache.log_file_path()
         log_file = nil
         begin
           save_stderr = nil
@@ -149,9 +161,8 @@ module MCollective
           log_file = File.open(log_file_path,"a")
           log_file.close
           Puppet[:autoflush] = true
-          most_recent_link = most_recent_file_path()
-          File.delete(most_recent_link) if File.exists? most_recent_link
-          File.symlink(log_file_path,most_recent_link)
+          most_recent_link = puppet_last_log_link()
+          symlink(log_file_path,most_recent_link)
 
           # Amar: Node manifest contains list of generated puppet manifests
           #       This is done to support multiple puppet calls inside one puppet_apply agent call
@@ -159,13 +170,11 @@ module MCollective
             execute_lines = puppet_manifest || ret_execute_lines(cmps_with_attrs)
             execute_string = execute_lines.join("\n")
             @log.info("\n----------------execute_string------------\n#{execute_string}\n----------------execute_string------------")
-            manifest_path = "#{ManifestBasePath}/#{@service_name}/#{top_task_id_info()}"
+            manifest_path = DTKPuppetCache.task_dir(@service_name,top_task_id())
             makedir(manifest_path)
             File.open("#{manifest_path}/site_stage#{inter_node_stage}_puppet_invocation_#{i+1}.pp","w"){|f| f << execute_string}
             # set the symlink to last_task
-            last_task_link = "#{ManifestBasePath}/last_task"
-            File.delete(last_task_link) if File.exists? last_task_link
-            FileUtils.ln_s(manifest_path, last_task_link)
+            symlink(manifest_path, DTKPuppetCache.last_task_link)
             cmd_line = 
               [
                "apply", 
@@ -562,11 +571,8 @@ module MCollective
       def log_params()
         @log.info("params: #{request.data.inspect}")
       end
-      
-      def log_file_path()
-        "#{ManifestBasePath}/#{@service_name}/#{top_task_id_info()}.log"
-      end
-      def most_recent_file_path()
+
+      def puppet_last_log_link()
         "#{PuppetApplyLogDir}/last.log"
       end
       def id_info()
@@ -576,11 +582,15 @@ module MCollective
           end
         end.compact.join(":")
       end
-      def top_task_id_info()
-        "task_id:#{@task_info[:top_task_id] || 'unknown' }"
+      def top_task_id()
+        "task_id_#{@task_info[:top_task_id] || 'unknown' }"
       end
       def makedir(path)
         FileUtils.mkdir_p(path) unless File.directory?(path)
+      end
+      def symlink(target,link)
+        File.delete(link) if File.exists? link
+        File.symlink(target,link)
       end
 
       #TODO: this should be common accross Agents
