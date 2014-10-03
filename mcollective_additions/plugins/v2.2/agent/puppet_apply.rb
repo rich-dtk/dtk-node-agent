@@ -163,7 +163,7 @@ module MCollective
             makedir(manifest_path)
             File.open("#{manifest_path}/site_stage#{inter_node_stage}_puppet_invocation_#{i+1}.pp","w"){|f| f << execute_string}
             # set the symlink to last_task
-            last_task_link "#{ManifestBasePath}/last_task"
+            last_task_link = "#{ManifestBasePath}/last_task"
             File.delete(last_task_link) if File.exists? last_task_link
             FileUtils.ln_s(manifest_path, last_task_link)
             cmd_line = 
