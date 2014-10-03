@@ -7,21 +7,9 @@ require 'fileutils'
 require File.expand_path('dtk_node_agent_git_client',File.dirname(__FILE__))
 
 #TODO: move to be shared by agents
-PuppetApplyLogDir = "/var/log/puppet"
-ModulePath        =  "/etc/puppet/modules"
-
-module DTKPuppetCache
-  BasePath      = "/usr/share/dtk/tasks"
-  def self.task_dir(service_name,top_task_id)
-    "#{BasePath}/#{service_name}/#{top_task_id}"
-  end
-  def self.log_file_path(service_name,top_task_id)
-    "#{task_dir(service_name,top_task_id)}/puppet.log"
-  end
-  def self.last_task_link()
-    "#{BasePath}/last_task"
-  end
-end
+PuppetApplyLogDir           = "/var/log/puppet"
+ModulePath                  =  "/etc/puppet/modules"
+DTKPuppetCacheBaseDir      = "/usr/share/dtk/tasks"
 
 module MCollective
   module Agent
@@ -149,10 +137,11 @@ module MCollective
         # Amar: Added task ID to current thread, so puppet apply can be canceled from puppet_cancel.rb when user requests cancel
         task_id = request[:top_task_id]
         Thread.current[:task_id] = task_id
-
         clean_state()
         ret = nil
-        log_file_path = DTKPuppetCache.log_file_path()
+        # TODO: harmonize request[:top_task_id] and top_task_id()
+        dtk_puppet_cache = DTKPuppetCache.new(@service_name,top_task_id())
+        log_file_path = dtk_puppet_cache.log_file_path()
         log_file = nil
         begin
           save_stderr = nil
@@ -170,11 +159,11 @@ module MCollective
             execute_lines = puppet_manifest || ret_execute_lines(cmps_with_attrs)
             execute_string = execute_lines.join("\n")
             @log.info("\n----------------execute_string------------\n#{execute_string}\n----------------execute_string------------")
-            manifest_path = DTKPuppetCache.task_dir(@service_name,top_task_id())
+            manifest_path = dtk_puppet_cache.task_dir()
             makedir(manifest_path)
             File.open("#{manifest_path}/site_stage#{inter_node_stage}_puppet_invocation_#{i+1}.pp","w"){|f| f << execute_string}
             # set the symlink to last_task
-            symlink(manifest_path, DTKPuppetCache.last_task_link)
+            symlink(manifest_path, dtk_puppet_cache.last_task_link())
             cmd_line = 
               [
                "apply", 
@@ -591,6 +580,25 @@ module MCollective
       def symlink(target,link)
         File.delete(link) if File.exists? link
         File.symlink(target,link)
+      end
+
+      class DTKPuppetCache
+        BaseDir = DTKPuppetCacheBaseDir
+        def initialize(service_name,top_task_id)
+          @service_name = service_name
+          @top_task_id = top_task_id
+          Puppet_apply.makedir(BaseDir)
+        end
+
+        def task_dir()
+          "#{BaseDir}/#{@service_name}/#{@top_task_id}"
+        end
+        def log_file_path()
+          "#{task_dir()}/puppet.log"
+        end
+        def last_task_link()
+          "#{BaseDir}/last_task"
+        end
       end
 
       #TODO: this should be common accross Agents
