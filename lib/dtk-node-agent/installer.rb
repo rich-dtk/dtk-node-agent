@@ -1,13 +1,19 @@
 module DTK
   module NodeAgent
     class Installer
+      require 'facter'
 
       # read configuration
       CONFIG = eval(File.open(File.expand_path('../config/install.config', File.dirname(__FILE__))) {|f| f.read })
 
+      # set OS facts
+      @osfamily     = Facter.osfamily.downcase
+      @osname       = Facter.operatingsystem
+      @osmajrelease = Facter.operatingsystemmajrelease
+      @osarch       = Facter.architecture
+
       def self.run(argv)
         require 'optparse'
-        require 'facter'
         require 'fileutils'
         require 'dtk-node-agent/version'
 
@@ -18,7 +24,7 @@ module DTK
           exit(1)
         end
 
-        if Facter.osfamily == 'Debian'
+        if @osfamily == 'debian'
               # set up apt and install packages
               shell "apt-get update --fix-missing"
               shell "apt-get install -y build-essential wget curl git"
@@ -34,35 +40,35 @@ module DTK
               # install mcollective
               puts "Installing MCollective..."
               shell "apt-get -y install mcollective"
-            elsif Facter.osfamily == 'RedHat'
+            elsif @osfamily == 'redhat'
               shell "yum -y install yum-utils wget bind-utils"
               # install upgrades
               Array(CONFIG[:upgrades][:redhat]).each do |package|
                 shell "yum -y update #{package}"
               end
-              case Facter.operatingsystemmajrelease
+              case @osmajrelease
               when "5"
                 shell "rpm -ivh #{CONFIG[:puppetlabs_el5_rpm_repo]}"
-                Facter.architecture == 'X86_64' ? (shell "rpm -ivh #{CONFIG[:rpm_forge_el5_X86_64_repo]}") : (shell "rpm -ivh #{CONFIG[:rpm_forge_el5_i686_repo]}")
+                @osarch == 'X86_64' ? (shell "rpm -ivh #{CONFIG[:rpm_forge_el5_X86_64_repo]}") : (shell "rpm -ivh #{CONFIG[:rpm_forge_el5_i686_repo]}")
               when "6", "n/a"
                 shell "rpm -ivh #{CONFIG[:puppetlabs_el6_rpm_repo]}"
-                Facter.architecture == 'X86_64' ? (shell "rpm -ivh #{CONFIG[:rpm_forge_el6_X86_64_repo]}") : (shell "rpm -ivh #{CONFIG[:rpm_forge_el6_i686_repo]}")
+                @osarch == 'X86_64' ? (shell "rpm -ivh #{CONFIG[:rpm_forge_el6_X86_64_repo]}") : (shell "rpm -ivh #{CONFIG[:rpm_forge_el6_i686_repo]}")
                 shell "yum-config-manager --disable rpmforge-release"
                 shell "yum-config-manager --enable rpmforge-extras"
+              when "7"
+                shell "rpm -ivh #{CONFIG[:puppetlabs_el7_rpm_repo]}"
               else
-                puts "#{Facter.operatingsystem} #{Facter.operatingsystemmajrelease} is not supported. Exiting now..."
+                puts "#{@osname} #{@osmajrelease} is not supported. Exiting now..."
                 exit(1)
               end
               puts "Installing MCollective..."
               shell "yum -y install mcollective"
-              shell "chkconfig mcollective on"
               shell "yum -y install git"
               # install ec2-run-user-data init script
               # but only if the machine is running on AWS
               if `host instance-data.ec2.internal`.include? 'has address'
                 FileUtils.cp("#{base_dir}/src/etc/init.d/ec2-run-user-data", "/etc/init.d/ec2-run-user-data") unless File.exist?("/etc/init.d/ec2-run-user-data")
-                shell "chmod +x /etc/init.d/ec2-run-user-data"
-                shell "chkconfig --level 345 ec2-run-user-data on"
+                set_init("ec2-run-user-data")
               end
             else
               puts "Unsuported OS for automatic agent installation. Exiting now..."
@@ -137,18 +143,29 @@ module DTK
             FileUtils.cp_r(Dir.glob("#{base_dir}/puppet_additions/modules/r8"), "/etc/puppet/modules")
             # copy mcollective plugins
             FileUtils.cp_r(Dir.glob("/usr/libexec/mcollective/mcollective/*"), "/usr/share/mcollective/plugins/mcollective") if File.directory?("/usr/libexec/mcollective/")        
-            FileUtils.cp_r(Dir.glob("#{base_dir}/mcollective_additions/plugins/v#{CONFIG[:mcollective_version]}/*"), "/usr/share/mcollective/plugins/mcollective")
-
+            mco_add_dir = "#{base_dir}/mcollective_additions"
+            mco_plugin_dir = "#{mco_add_dir}/plugins/v#{CONFIG[:mcollective_version]}"
+            FileUtils.cp_r(Dir.glob("#{mco_plugin_dir}/*"), "/usr/share/mcollective/plugins/mcollective")
             # copy mcollective config
-            FileUtils.cp_r("#{base_dir}/mcollective_additions/server.cfg", "/etc/mcollective", :remove_destination => true)
-
+            FileUtils.cp_r("#{mco_add_dir}/server.cfg", "/etc/mcollective", :remove_destination => true)
             # copy compatible mcollective init script
-            FileUtils.cp_r("#{base_dir}/mcollective_additions/#{Facter.osfamily.downcase}.mcollective.init", "/etc/init.d/mcollective", :remove_destination => true)
-            shell "chmod +x /etc/init.d/mcollective"
+            FileUtils.cp_r("#{mco_add_dir}/#{@osfamily}.mcollective.init", "/etc/init.d/mcollective", :remove_destination => true)
+            FileUtils.cp_r("#{mco_add_dir}/#{@osfamily}.mcollective.service", "/usr/lib/systemd/system/mcollective.service", :remove_destination => true) if File.exist?("/usr/lib/systemd/system/mcollective.service")
+            set_init("mcollective")
           end
 
           def self.base_dir
             File.expand_path('../..', File.dirname(__FILE__))
+          end
+
+          def self.set_init(script)
+            shell "chmod +x /etc/init.d/#{script}"
+            if @osfamily == 'debian'
+              shell "update-rc.d #{script} defaults"
+            elsif @osfamily == 'redhat'
+              shell "chkconfig --level 345 #{script} on"
+              shell "systemctl daemon-reload" if @osmajrelease == '7'
+            end
           end
 
     end
