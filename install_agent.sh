@@ -66,6 +66,7 @@ export PATH=/opt/puppet-omnibus/embedded/bin/:/opt/puppet-omnibus/bin/:$PATH
 [[ `ls ${base_dir}/*.gem 2>/dev/null` ]] && rm ${base_dir}/*.gem
 # install the dtk-node-agent gem
 cd ${base_dir}
+gem uninstall -aIx puppet
 gem build ${base_dir}/dtk-node-agent.gemspec
 gem install ${base_dir}/dtk-node-agent*.gem --no-rdoc --no-ri
 

@@ -7,10 +7,11 @@ module DTK
       CONFIG = eval(File.open(File.expand_path('../config/install.config', File.dirname(__FILE__))) {|f| f.read })
 
       # set OS facts
-      @osfamily     = Facter.osfamily.downcase
-      @osname       = Facter.operatingsystem
-      @osmajrelease = Facter.operatingsystemmajrelease
-      @osarch       = Facter.architecture
+      @osfamily     = Facter.value('osfamily').downcase
+      @osname       = Facter.value('operatingsystem')
+      @osmajrelease = Facter.value('operatingsystemmajrelease')
+      @osarch       = Facter.value('architecture')
+      @distcodename = Facter.value('lsbdistcodename')
 
       def self.run(argv)
         require 'optparse'
@@ -32,11 +33,11 @@ module DTK
               Array(CONFIG[:upgrades][:debian]).each do |package|
                 shell "apt-get install -y #{package}"
               end
-              shell "wget http://apt.puppetlabs.com/puppetlabs-release-#{Facter.lsbdistcodename}.deb"
+              shell "wget http://apt.puppetlabs.com/puppetlabs-release-#{@distcodename}.deb"
               puts "Installing Puppet Labs repository..."
-              shell "dpkg -i puppetlabs-release-#{Facter.lsbdistcodename}.deb"
+              shell "dpkg -i puppetlabs-release-#{@distcodename}.deb"
               shell "apt-get update"
-              shell "rm puppetlabs-release-#{Facter.lsbdistcodename}.deb"
+              shell "rm puppetlabs-release-#{@distcodename}.deb"
               # install mcollective
               puts "Installing MCollective..."
               shell "apt-get -y install mcollective"
