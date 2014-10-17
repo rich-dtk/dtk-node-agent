@@ -28,7 +28,7 @@ if [[ `command -v apt-get` ]]; then
 		# add the git core ppa
 		yes | sudo add-apt-repository ppa:git-core/ppa
 		apt-get update
-		wget "http://dtk-storage.s3.amazonaws.com/puppet-omnibus_3.3.2%2Bfpm0_amd64.deb" -O puppet-omnibus.deb
+		wget "http://dtk-storage.s3.amazonaws.com/puppet-omnibus_3.6.2%2Bfpm0_amd64.deb" -O puppet-omnibus.deb
 	elif [[ ${osname} == 'Debian' ]]; then
 		wget "http://dtk-storage.s3.amazonaws.com/puppet-omnibus_3.3.2%2Bfpm0_amd64.debian.deb" -O puppet-omnibus.deb
 	fi
@@ -51,7 +51,7 @@ elif [[ `command -v yum` ]]; then
 	if [[ ${release:0:1} == 5 ]]; then
 		wget http://dtk-storage.s3.amazonaws.com/puppet-omnibus-3.3.2.fpm0-1.x86_64.el5.rpm -O puppet-omnibus.rpm
 	elif [[ ${release:0:1} == 6 ]] || [[ ${release:0:1} == 7 ]] || [[ ${osname} == 'Amazon' ]];then
-		wget http://dtk-storage.s3.amazonaws.com/puppet-omnibus-3.3.2.fpm0-1.x86_64.el6.rpm -O puppet-omnibus.rpm
+		wget http://dtk-storage.s3.amazonaws.com/puppet-omnibus-3.6.2.fpm0-1.x86_64.el6.rpm -O puppet-omnibus.rpm
 	fi;
 	yum -y --nogpgcheck localinstall puppet-omnibus.rpm
 	rm -rf puppet-omnibus.rpm
@@ -68,6 +68,7 @@ export PATH=/opt/puppet-omnibus/embedded/bin/:/opt/puppet-omnibus/bin/:$PATH
 cd ${base_dir}
 gem uninstall -aIx puppet
 gem build ${base_dir}/dtk-node-agent.gemspec
+gem install posix-spawn -v 0.3.8 --no-rdoc --no-ri
 gem install ${base_dir}/dtk-node-agent*.gem --no-rdoc --no-ri
 
 # run the gem
