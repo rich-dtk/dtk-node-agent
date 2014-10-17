@@ -36,6 +36,5 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'serverspec', '~> 1.1.0'
   gem.add_dependency 'specinfra', '~> 1.0.4'
   gem.add_dependency 'posix-spawn', '0.3.8'
-  gem.add_dependency 'ruby-debug', '~> 0.10.4'
 
 end
