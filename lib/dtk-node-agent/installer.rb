@@ -45,6 +45,7 @@ module DTK
               shell "yum -y install yum-utils wget bind-utils"
               # install upgrades
               Array(CONFIG[:upgrades][:redhat]).each do |package|
+                shell "yum -y install #{package}"
                 shell "yum -y update #{package}"
               end
               case @osmajrelease
