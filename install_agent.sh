@@ -96,6 +96,6 @@ args="$*"
 
 if [[ ${args} =~ "--sanitize" ]]; then
   # sanitize the AMI (creating unique ssh host keys will be handled by the cloud-init package)
-  find /root/.*history /home/*/.*history -exec rm -f {} \;
+  find /root /home -name ".*history" -exec rm -f {} \;
   find /root /home /etc -name "authorized_keys" -exec rm -f {} \;
 fi;
