@@ -6,7 +6,7 @@ module DTK
       # read configuration
       CONFIG = eval(File.open(File.expand_path('../config/install.config', File.dirname(__FILE__))) {|f| f.read })
 
-      # set OS facts
+      # get OS facts
       @osfamily     = Facter.value('osfamily').downcase
       @osname       = Facter.value('operatingsystem')
       @osmajrelease = Facter.value('operatingsystemmajrelease')
@@ -41,6 +41,8 @@ module DTK
               # install mcollective
               puts "Installing MCollective..."
               shell "apt-get -y install mcollective"
+              # pin down the puppetlabs apt repo
+              FileUtils.cp("#{base_dir}/src/etc/apt/preferences.d/puppetlabs", "/etc/apt/preferences.d/puppetlabs")
             elsif @osfamily == 'redhat'
               shell "yum -y install yum-utils wget bind-utils"
               # install upgrades
