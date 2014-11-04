@@ -44,7 +44,7 @@ module DTK
               # pin down the puppetlabs apt repo
               FileUtils.cp("#{base_dir}/src/etc/apt/preferences.d/puppetlabs", "/etc/apt/preferences.d/puppetlabs")
             elsif @osfamily == 'redhat'
-              shell "yum -y install yum-utils wget bind-utils"
+              shell "yum -y install yum-utils wget curl"
               # install upgrades
               Array(CONFIG[:upgrades][:redhat]).each do |package|
                 shell "yum -y install #{package}"
@@ -70,7 +70,7 @@ module DTK
               shell "yum -y install git"
               # install ec2-run-user-data init script
               # but only if the machine is running on AWS
-              if `host instance-data.ec2.internal`.include? 'has address'
+              if `curl -m 5 -sI http://169.254.169.254/latest/meta-data/`.include? '200 OK'
                 FileUtils.cp("#{base_dir}/src/etc/init.d/ec2-run-user-data", "/etc/init.d/ec2-run-user-data") unless File.exist?("/etc/init.d/ec2-run-user-data")
                 set_init("ec2-run-user-data")
               end
