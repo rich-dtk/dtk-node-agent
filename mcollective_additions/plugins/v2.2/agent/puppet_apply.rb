@@ -661,13 +661,22 @@ module MCollective
       Thread.current[:report_status] = status.to_sym
     end
     def self.get_status()
-      Thread.current[:report_status]
+      Thread.current[:report_status] || :failed
     end
     def self.set_report_info(report_info)
       Thread.current[:report_info] = report_info
     end
     def self.get_report_info()
-      Thread.current[:report_info]||{}
+      Thread.current[:report_info]||generate_report_info_from_log()
+    end
+    def self.generate_report_info_from_log()
+      report_info = Hash.new
+      report_errors = []
+      # ignore 'Unable to set ownership of log file' since it comes up every time
+      # to-do: look into what might be causing it
+      report_errors << {"time"=>Time.now, "message"=>`grep -v 'Unable to set ownership of log file' #{PuppetApplyLogDir}/last.log | grep -A5 '\(err\)'`}
+      report_info[:errors] = report_errors
+      report_info
     end
   end
 end
