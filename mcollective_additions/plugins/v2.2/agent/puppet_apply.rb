@@ -139,6 +139,7 @@ module MCollective
         Thread.current[:task_id] = task_id
         clean_state()
         ret = nil
+        runtime_errors = nil # in contast to compile errors
         # TODO: harmonize request[:top_task_id] and top_task_id()
         dtk_puppet_cache = DTKPuppetCache.new(@service_name,top_task_id())
         log_file_path = dtk_puppet_cache.log_file_path(inter_node_stage)
@@ -209,8 +210,9 @@ module MCollective
             error_info = {
               :return_code => return_code            
             }
-            error_info.merge!(:errors => report_info[:errors]) if (report_info||{})[:errors]
-            error_info[:errors].each { |error| error["type"] = "user_error" } if error_info[:errors]
+            if runtime_errors = (report_info||{})[:errors]
+              error_info[:errors] = runtime_errors.map{|e|e.merge(:type => "user_error")}
+            end
             ret.merge!(error_info)
           end
          rescue Exception => e
@@ -233,11 +235,14 @@ module MCollective
             stderr_msg = stderr_capture.read
             stderr_capture.close
             stderr_capture.unlink
-            if err_message = compile_error_message?(return_code,stderr_msg,log_file_path)
-              ret[:errors] = (ret[:errors]||[]) + [{:message => err_message, :type => "user_error" }]
-              ret.set_status_failed!()
-              Puppet::err stderr_msg 
-              Puppet::info "(end)"
+            # dont look for compile errors if runtime errors
+            unless runtime_errors
+              if err_message = compile_error_message?(return_code,stderr_msg,log_file_path)
+                ret[:errors] =  [{:message => err_message, :type => "user_error" }]
+                ret.set_status_failed!()
+                Puppet::err stderr_msg 
+                Puppet::info "(end)"
+              end
             end
           end
           Puppet::Util::Log.close_all()
