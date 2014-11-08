@@ -533,9 +533,10 @@ module MCollective
           cmp_with_attrs["name"]
         when "definition"
           defn = cmp_with_attrs["name"]
-          name_attr_val = (cmp_with_attrs["attributes"].find{|attr|attr["name"]}||{})["value"]
-          raise "Cannot find the name associated with definition #{defn}" unless name_attr_val
-          "#{cmp_with_attrs["name"]}[#{name_attr_val}]"
+          unless name_attr = cmp_with_attrs["attributes"].find{|attr|attr["name"] == "name"}
+            raise "Cannot find the name associated with definition #{defn}"
+          end
+          "#{cmp_with_attrs["name"]}[#{name_attr["value"]}]"
         else
           raise "Reference to type #{cmp_with_attrs["component_type"]} not treated"
         end
