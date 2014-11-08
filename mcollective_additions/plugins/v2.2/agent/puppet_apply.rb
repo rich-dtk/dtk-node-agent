@@ -252,7 +252,7 @@ module MCollective
           rest_reverse = Array.new
           error = nil
           begin 
-            File.open(log_file_path).read.split("\n").each_reverse do |line|
+            File.open(log_file_path).read.split("\n").reverse_each do |line|
               if line =~ /^.+Puppet \(err\):\s*(.+$)/
                 error = $1
                 break
