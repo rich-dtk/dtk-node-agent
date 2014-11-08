@@ -249,12 +249,20 @@ module MCollective
         if stderr_msg and not stderr_msg.empty?
           stderr_msg
         elsif return_code != 0
-          if last_line = `tail -1 "#{log_file_path}"`
-            #TODO: might be more general pattern to search
-            if last_line =~ /^.+Puppet \(err\):\s*(.+$)/
-              $1
+          rest_reverse = Array.new
+          error = nil
+          begin 
+            File.open(log_file_path).read.split("\n").each_reverse do |line|
+              if line =~ /^.+Puppet \(err\):\s*(.+$)/
+                error = $1
+                break
+              else
+                rest_reverse << line
+              end
             end
+           rescue 
           end
+          ([error || 'Puppet catalog compile error'] + rest_reverse.reverse).join("\n")
         end
       end
 
@@ -667,16 +675,7 @@ module MCollective
       Thread.current[:report_info] = report_info
     end
     def self.get_report_info()
-      Thread.current[:report_info]||generate_report_info_from_log()
-    end
-    def self.generate_report_info_from_log()
-      report_info = Hash.new
-      report_errors = []
-      # ignore 'Unable to set ownership of log file' since it comes up every time
-      # to-do: look into what might be causing it
-      report_errors << {"time"=>Time.now, "message"=>`grep -v 'Unable to set ownership of log file' #{PuppetApplyLogDir}/last.log | grep -A5 '\(err\)'`}
-      report_info[:errors] = report_errors
-      report_info
+      Thread.current[:report_info]||{}
     end
   end
 end
