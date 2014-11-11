@@ -25,10 +25,12 @@ module MCollective
           skip = nil
           fp = request[:server_ssh_rsa_fingerprint]
           if File.exists?(known_hosts)
-            fp_key = (fp =~ Regexp.new("^[|]1[|]([^=]+)=");$1)
-            if fp_key
-              fp_key_regexp =  Regexp.new("^.1.#{fp_key}")
-              skip = !!File.open(known_hosts){|f|f.find{|line|line =~ fp_key_regexp}} 
+            if fp_key = (fp =~ Regexp.new("^[|]1[|]([^=]+)=");$1)
+              # handle non alphanumeric chars
+              # ' ' on end is so pattern does not end with \\
+              fp_key_clean = fp_key.gsub(Regexp.new("([^a-zA-Z0-9])"),'\\ \1').gsub(' ','')+' '
+              fp_key_regexp =  Regexp.new("^.1.#{fp_key_clean}")
+              skip = !!File.open(known_hosts){|f|f.find{|line|"#{line} " =~ fp_key_regexp}} 
             end
           end
           unless skip
