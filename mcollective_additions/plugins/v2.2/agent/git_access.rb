@@ -21,20 +21,8 @@ module MCollective
             File.open(rsa_pub_path,"w"){|f|f.print request[:agent_ssh_key_public]}
           end
 
-          #create or append if key not there
-          skip = nil
-          fp = request[:server_ssh_rsa_fingerprint]
-          if File.exists?(known_hosts)
-            if fp_key = (fp =~ Regexp.new("^[|]1[|]([^=]+)=");$1)
-              # handle non alphanumeric chars
-              fp_key_clean = fp_key.gsub(Regexp.new("([^a-zA-Z0-9])"),'\\ \1').gsub(' ','')
-              fp_key_regexp =  Regexp.new("^.1.#{fp_key_clean}")
-              skip = !!File.open(known_hosts){|f|f.find{|line|line =~ fp_key_regexp}} 
-            end
-          end
-          unless skip
-            File.open(known_hosts,"a"){|f|f.print request[:server_ssh_rsa_fingerprint]}
-          end
+          # add rsa_fingerprint to known hsots; server logic makes sure that is not requested twice so no duplicates
+          File.open(known_hosts,"a"){|f|f.print request[:server_ssh_rsa_fingerprint]}
 
           reply.data   = { :status => :succeeded}
          rescue Exception => e
