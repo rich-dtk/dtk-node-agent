@@ -27,10 +27,9 @@ module MCollective
           if File.exists?(known_hosts)
             if fp_key = (fp =~ Regexp.new("^[|]1[|]([^=]+)=");$1)
               # handle non alphanumeric chars
-              # ' ' on end is so pattern does not end with \\
-              fp_key_clean = fp_key.gsub(Regexp.new("([^a-zA-Z0-9])"),'\\ \1').gsub(' ','')+' '
+              fp_key_clean = fp_key.gsub(Regexp.new("([^a-zA-Z0-9])"),'\\ \1').gsub(' ','')
               fp_key_regexp =  Regexp.new("^.1.#{fp_key_clean}")
-              skip = !!File.open(known_hosts){|f|f.find{|line|"#{line} " =~ fp_key_regexp}} 
+              skip = !!File.open(known_hosts){|f|f.find{|line|line =~ fp_key_regexp}} 
             end
           end
           unless skip
