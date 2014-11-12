@@ -30,7 +30,7 @@ if [[ `command -v apt-get` ]]; then
 		apt-get update
 		wget "http://dtk-storage.s3.amazonaws.com/puppet-omnibus_3.6.2%2Bfpm0_amd64.deb" -O puppet-omnibus.deb
 	elif [[ ${osname} == 'Debian' ]]; then
-		wget "http://dtk-storage.s3.amazonaws.com/puppet-omnibus_3.3.2%2Bfpm0_amd64.debian.deb" -O puppet-omnibus.deb
+		wget "http://dtk-storage.s3.amazonaws.com/puppet-omnibus_3.6.2%2Bfpm0_amd64.debian.deb" -O puppet-omnibus.deb
 	fi
 	if [[ ${codename} == 'squeeze' ]]; then
 		echo "deb http://backports.debian.org/debian-backports squeeze-backports main" > /etc/apt/sources.list.d/squeeze-backports.list
