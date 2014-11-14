@@ -200,11 +200,12 @@ module MCollective
           return_code = ((report_status == :failed || report_info[:errors]) ? 1 : exit_status)
           ret ||= Response.new()
           if return_code == 0
-            if dynamic_attributes = process_dynamic_attributes?(cmps_with_attrs)
-              @log.info("dynamic_attributes = #{dynamic_attributes.inspect}")
-              ret.set_dynamic_attributes!(dynamic_attributes)
+            if dynamic_attr_info = has_dynamic_attributes?(cmps_with_attrs)
+              @log.info("dynamic_attributes = #{dynamic_attr_info.inspect}")
+              process_dynamic_attributes!(ret,dynamic_attr_info)
+            else
+              ret.set_status_succeeded!()
             end
-            ret.set_status_succeeded!()
           else
             ret.set_status_failed!()
             error_info = {
@@ -398,21 +399,60 @@ module MCollective
         end
       end
 
-      def process_dynamic_attributes?(cmps_with_attrs)
-        ret = Array.new
-        cmps_with_attrs.each do |cmp_with_attrs|
-          dyn_attrs = cmp_with_attrs["dynamic_attributes"]
-          if dyn_attrs and not dyn_attrs.empty?
-            cmp_ref = component_ref(cmp_with_attrs)
-            dyn_attrs.each do |dyn_attr|
-              if el = dynamic_attr_response_el(cmp_ref,dyn_attr)
-                ret << el
-              end
+      def has_dynamic_attributes?(cmps_with_attrs)
+        ret = cmps_with_attrs.map do |cmp_with_attrs|
+          dyn_attrs = cmp_with_attrs["dynamic_attributes"]||[]
+          if !dyn_attrs.empty?
+            {
+              :cmp_ref => component_ref(cmp_with_attrs),
+              :dynamic_attrs => dyn_attrs
+            }
+          end
+        end.compact
+        !ret.empty? && ret
+      end
+
+      def process_dynamic_attributes!(ret,dynamic_attr_info)
+        dyn_attr_assigns = Array.new
+        missing_dyn_attrs = Array.new
+        dynamic_attr_info.each do |info|
+          cmp_ref = info[:cmp_ref]
+          info[:dynamic_attrs].each do |dyn_attr|
+            if dyn_attr_assign = dynamic_attr_response_el(cmp_ref,dyn_attr)
+              dyn_attr_assigns << dyn_attr_assign
+            else
+              missing_attr = {
+                :cmp_ref => cmp_ref,
+                :attr => dyn_attr[:name]
+              }
+              missing_dyn_attrs << missing_attr
             end
           end
         end
-        ret.empty? ? nil : ret
+        if missing_dyn_attrs.empty?
+          ret.set_dynamic_attributes!(dyn_attr_assigns)
+          ret.set_status_succeeded!()
+        else
+          set_error_missing_dynamic_attrs!(ret,missing_dyn_attrs)
+          ret.set_status_failed!()
+        end
       end
+
+      def set_error_missing_dynamic_attrs!(ret,missing_dyn_attrs)
+        errors = missing_dyn_attrs.map do |info|
+          err_message = "Dynamic Attribute (#{info[:attr]}) is not set by component (#{info[:cmp_ref]})"
+          {
+            :message => err_message,
+            :type => "user_error"
+          }
+        end
+        error_info = {
+          :return_code => 1,
+          :errors => errors
+        }
+        ret.merge!(error_info)
+      end
+
       def dynamic_attr_response_el(cmp_name,dyn_attr)
         ret = nil
         val = 
