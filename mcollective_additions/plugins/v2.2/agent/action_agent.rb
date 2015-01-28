@@ -14,7 +14,9 @@ module MCollective
         }.to_json
 
         reply[:data] = {}
-        reply[:data][:output] = `dtk-action-agent '#{payload}'`
+
+        result = `dtk-action-agent '#{payload}'`
+        reply[:data][:output] = JSON.parse(result)
 
         reply[:pbuilderid] = Facts["pbuilderid"]
         reply[:status] = :ok

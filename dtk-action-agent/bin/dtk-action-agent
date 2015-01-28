@@ -3,9 +3,10 @@ require 'json'
 require File.expand_path('../../lib/arbiter', __FILE__)
 
 unless ARGV[0]
-  print {
+  error_msg = {
     :error => 'You need to provide JSON with argument to method call'
-  }.to_json
+  }
+  print error_msg.to_json
 else
   content = JSON.parse(ARGV[0])
   arbiter = DTK::Agent::Arbiter.new(content)
