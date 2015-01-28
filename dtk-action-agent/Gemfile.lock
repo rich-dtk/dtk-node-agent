@@ -1,0 +1,18 @@
+PATH
+  remote: .
+  specs:
+    dtk-action-agent (0.0.1)
+      awesome_print (= 1.1.0)
+      posix-spawn (= 0.3.8)
+
+GEM
+  remote: http://rubygems.org/
+  specs:
+    awesome_print (1.1.0)
+    posix-spawn (0.3.8)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  dtk-action-agent!
