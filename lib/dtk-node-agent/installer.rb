@@ -36,8 +36,16 @@ module DTK
               shell "wget http://apt.puppetlabs.com/puppetlabs-release-#{@distcodename}.deb"
               puts "Installing Puppet Labs repository..."
               shell "dpkg -i puppetlabs-release-#{@distcodename}.deb"
+              puts "Installing Puppet Labs repository..."
+              shell "dpkg -i puppetlabs-release-#{@distcodename}.deb"
+              # install logstash forwarder
+              logstash_forwarder_url = CONFIG[:logstash_forwarder_deb64]
+              logstash_forwarder_package = logstash_forwarder_url.rpartition('/').last
+              shell "wget #{logstash_forwarder_url}"
+              puts "Installing logstash-forwarder"
+              shell "dpkg -i #{logstash_forwarder_package}"
               shell "apt-get update"
-              shell "rm puppetlabs-release-#{@distcodename}.deb"
+              shell "rm puppetlabs-release-#{@distcodename}.deb #{logstash_forwarder_package}"
               # install mcollective
               puts "Installing MCollective..."
               shell "apt-get -y install mcollective"
@@ -74,6 +82,11 @@ module DTK
                 FileUtils.cp("#{base_dir}/src/etc/init.d/ec2-run-user-data", "/etc/init.d/ec2-run-user-data") unless File.exist?("/etc/init.d/ec2-run-user-data")
                 set_init("ec2-run-user-data")
               end
+              # install logstash-forwarder
+              puts "Installing logstash-forwarder"
+              shell "rpm -ivh #{CONFIG[:logstash_forwarder_rpm64]}"
+              FileUtils.cp("#{base_dir}/src/etc/init.d/logstash-forwarder.rpm.init", "/etc/init.d/logstash-forwarder")
+              set_init("logstash-forwarder")
             else
               puts "Unsuported OS for automatic agent installation. Exiting now..."
               exit(1)
