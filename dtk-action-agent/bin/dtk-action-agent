@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+require 'rubygems'
 require 'json'
 require File.expand_path('../../lib/arbiter', __FILE__)
 
