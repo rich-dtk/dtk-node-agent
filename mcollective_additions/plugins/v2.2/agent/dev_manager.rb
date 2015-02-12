@@ -24,7 +24,8 @@ module MCollective
           ret.set_status_succeeded!()
 
           t1 = Thread.new do
-            system("sudo /etc/init.d/mcollective restart")
+            Log.instance.info "Initiating mcollective restart..."
+            system("/etc/init.d/mcollective restart")
           end
 
           return ret
