@@ -10,7 +10,7 @@ module MCollective
         Log.info "Run command has been started with bash command '#{command_to_run}'"
 
         payload = {
-          :commands => [command_to_run]
+          :commands => [command_to_run].flatten
         }.to_json
 
         reply[:data] = {}
