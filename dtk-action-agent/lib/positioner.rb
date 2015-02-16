@@ -31,8 +31,13 @@ module DTK
         git_branch  = position_info['source']['ref']
 
         unless File.directory?(folder_path)
-          g_repo = Git.clone("#{git_url}", '', :path => folder_path, :branch => git_branch)
-          Log.info("Positioner successfully cloned git repository '#{git_url}@#{git_branch}' to location '#{folder_path}'")
+          begin
+            g_repo = Git.clone("#{git_url}", '', :path => folder_path, :branch => git_branch)
+            Log.info("Positioner successfully cloned git repository '#{git_url}@#{git_branch}' to location '#{folder_path}'")
+          rescue Exception => e
+            Log.error("Positioner unable to clone #{git_url}")
+            Log.error(e.message)
+          end
         else
           Log.warn("Positioner detected folder '#{folder_path}' skipping git clone")
         end
