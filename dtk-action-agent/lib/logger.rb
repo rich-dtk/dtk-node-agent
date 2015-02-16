@@ -8,7 +8,7 @@ module DTK
 
       attr_accessor :logger
 
-      LOG_TO_CONSOLE = true
+      LOG_TO_CONSOLE = false
       LOG_TO_FILE    = '/var/log/action-agent.log'
       # LOG_TO_FILE    = '/Users/haris/test.log'
 
