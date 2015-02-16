@@ -1,23 +1,64 @@
 require 'json'
 require 'ap'
+require 'active_support/hash_with_indifferent_access'
+require 'active_support/core_ext/hash'
 
-test_array =
+
+@request_params = ActiveSupport::HashWithIndifferentAccess.new(
   {
-    :commands => ["date","more /var/log/mcollective.log"]
-  }
+    :env_vars => { :HARIS => 'WORKS', :NESTO => 21 },
+    :execution_list => [
+      {
+        :type    => 'syscall',
+        :command => 'd1ate',
+        :if      => 'echo works!'
+      },
+      {
+        :type    => 'syscall',
+        :command => '1date',
+        :unless      => 'echo "Does not works!"'
+      }],
+    :positioning => [{
+        :type => 'file',
+        :source => {
+          :type => 'git',
+          :url => "git@github.com:rich-reactor8/dtk-client.git",
+          :ref => "tenant1"
+        },
+        :target => {
+          :path => "/Users/haris/foo-test"
+        },
+      },
+      {
+        :type => 'file',
+        :source => {
+          :type => 'in_payload',
+          :content => "Hello WORLD!"
+        },
+        :target => {
+          :path => "/Users/haris/test-folder/site-stage-1-invocation-1.pp"
+        }
+      }]
+  })
 
+def test_command_line
+  transform_to_string = @request_params.to_json
+  result =  `dtk-action-agent '#{transform_to_string}'`
+  print result
+end
 
-transform_to_string = test_array.to_json
+def test_inline
+  require File.expand_path('../lib/logger', __FILE__)
+  require File.expand_path('../lib/arbiter', __FILE__)
+  require File.expand_path('../lib/positioner', __FILE__)
+  require File.expand_path('../lib/commander', __FILE__)
 
-# we need to escape '/' due to system calls
-#transform_to_string.gsub!('/',"\\/")
+  arbiter = DTK::Agent::Arbiter.new(@request_params)
+  results = arbiter.run()
+  ap results
+end
 
-# DEBUG SNIPPET >>> REMOVE <<<
-require 'ap'
-ap transform_to_string
-#ap "dtk-action-agent \"#{transform_to_string}\""
-result =  `dtk-action-agent '#{transform_to_string}'`
+test_inline
 
-ap result
 
 

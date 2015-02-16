@@ -21,5 +21,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'posix-spawn','0.3.8'
   gem.add_dependency 'awesome_print', '1.1.0'
   gem.add_dependency 'json', '1.8.2'
+  gem.add_dependency 'git', '1.2.9.1'
 
+end
 end

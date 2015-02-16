@@ -10,43 +10,22 @@ module DTK
       def initialize(consumer_hash)
         @received_message = consumer_hash
         @process_pool     = []
+
+        # sets enviorment variables
+        Commander.set_environment_variables(@received_message['env_vars'])
+        @positioner     = Positioner.new(@received_message['positioning'])
+        @commander = Commander.new(@received_message['execution_list'])
       end
 
       def run
-        (@received_message['commands']||[]).each do |message|
-          @process_pool << POSIX::Spawn::Child.new(message)
-        end
+        # start positioning files
+        @positioner.run()
 
-        loop do
-          sleep(1)
-          @process_pool.each do |process|
-            unless process.status.exited?
-              next
-            end
-          end
-          break
-        end
-      end
+        # start commander runnes
+        @commander.run()
 
-      def results
-        @process_pool.collect do |process|
-          {
-            :status => process.status.exitstatus,
-            :stdout => process.out,
-            :stderr => process.err
-          }
-        end
-      end
-
-      def print_results
-        @process_pool.each do |process|
-          ap process.status
-          ap "STDOUT"
-          print process.out
-          ap "STDERR"
-          print process.err
-          ap "-----------------------------------"
-        end
+        # return results
+        @commander.results()
       end
 
     end

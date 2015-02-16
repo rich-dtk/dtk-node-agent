@@ -1,7 +1,10 @@
 #!/usr/bin/env ruby
 require 'rubygems'
 require 'json'
+require File.expand_path('../../lib/logger', __FILE__)
 require File.expand_path('../../lib/arbiter', __FILE__)
+require File.expand_path('../../lib/positioner', __FILE__)
+require File.expand_path('../../lib/commander', __FILE__)
 
 unless ARGV[0]
   error_msg = {
@@ -11,9 +14,8 @@ unless ARGV[0]
 else
   content = JSON.parse(ARGV[0])
   arbiter = DTK::Agent::Arbiter.new(content)
-  arbiter.run()
+  results = arbiter.run()
 
-  results = arbiter.results()
   # we print results in json so that they can be serialized in another
   print results.to_json
 end
