@@ -70,7 +70,6 @@ gem uninstall -aIx puppet
 gem build ${base_dir}/dtk-node-agent.gemspec
 gem install posix-spawn -v 0.3.8 --no-rdoc --no-ri
 gem install ${base_dir}/dtk-node-agent*.gem --no-rdoc --no-ri
-rm ${base_dir}/dtk-node-agent*.gem
 # install the action agent
 cd ${base_dir}/dtk-action-agent
 gem build dtk-action-agent.gemspec
