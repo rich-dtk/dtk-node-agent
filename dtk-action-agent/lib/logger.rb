@@ -9,8 +9,8 @@ module DTK
       attr_accessor :logger
 
       LOG_TO_CONSOLE = true
-      # LOG_TO_FILE    = '/var/log/action-agent.log'
-      LOG_TO_FILE    = '/Users/haris/test.log'
+      LOG_TO_FILE    = '/var/log/action-agent.log'
+      # LOG_TO_FILE    = '/Users/haris/test.log'
 
       def initialize
         @logger = ::Logger.new(File.new(LOG_TO_FILE,'w'))
