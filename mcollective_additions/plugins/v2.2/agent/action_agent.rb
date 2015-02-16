@@ -5,11 +5,9 @@ module MCollective
     class Action_agent < RPC::Agent
      action "run_command" do
         #validate :action_agent_request, String
-
+        payload = request[:action_agent_request].to_json
         Log.info "Run command has been started with params: "
         Log.info payload
-
-        payload = request[:action_agent_request].to_json
 
         reply[:data] = {}
 
