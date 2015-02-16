@@ -4,17 +4,16 @@ module MCollective
   module Agent
     class Action_agent < RPC::Agent
      action "run_command" do
-        validate :bash_command, String
-        command_to_run = request[:bash_command]
+        #validate :action_agent_request, String
 
-        Log.info "Run command has been started with bash command '#{command_to_run}'"
+        Log.info "Run command has been started with params: "
+        Log.info payload
 
-        payload = {
-          :commands => [command_to_run].flatten
-        }.to_json
+        payload = request[:action_agent_request].to_json
 
         reply[:data] = {}
 
+        # Log.info `/opt/puppet-omnibus/embedded/bin/dtk-action-agent '#{payload}'`
         result = `/opt/puppet-omnibus/embedded/bin/dtk-action-agent '#{payload}'`
         reply[:data][:output] = JSON.parse(result)
 
