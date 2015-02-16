@@ -43,6 +43,7 @@ require 'active_support/core_ext/hash'
 
 def test_command_line
   transform_to_string = @request_params.to_json
+  print transform_to_string
   result =  `dtk-action-agent '#{transform_to_string}'`
   print result
 end
@@ -58,7 +59,7 @@ def test_inline
   ap results
 end
 
-test_inline
+test_command_line
 
 
 

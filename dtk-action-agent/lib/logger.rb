@@ -3,7 +3,7 @@ require 'singleton'
 
 module DTK
   module Agent
-    class Logger
+    class Log
       include Singleton
 
       attr_accessor :logger
@@ -13,7 +13,7 @@ module DTK
       # LOG_TO_FILE    = '/Users/haris/test.log'
 
       def initialize
-        @logger = ::Logger.new(File.new(LOG_TO_FILE,'w'))
+        @logger = Logger.new(File.new(LOG_TO_FILE,'w'))
       end
 
       def self.debug(msg)

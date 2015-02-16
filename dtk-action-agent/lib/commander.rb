@@ -24,14 +24,14 @@ module DTK
 
             # is task finished
             if command_task.exited?
-              Logger.debug("Command '#{command_task}' finished, with status #{command_task.exitstatus}")
+              Log.debug("Command '#{command_task}' finished, with status #{command_task.exitstatus}")
 
               # if there is a callback start it
               if command_task.callback_pending?
                 new_command_task = command_task.spawn_callback_task
                 new_command_task.start_task
                 @command_tasks << new_command_task
-                Logger.debug("Command '#{new_command_task}' spawned as callback")
+                Log.debug("Command '#{new_command_task}' spawned as callback")
                 # new task added we need to check again
                 all_finished = false
               end
@@ -65,7 +65,7 @@ module DTK
       def self.set_environment_variables(env_vars_hash)
         env_vars_hash.each do |k, v|
           ENV[k] = v.to_s.strip
-          Logger.debug("Environment variable set (#{k}: #{v})")
+          Log.debug("Environment variable set (#{k}: #{v})")
         end
       end
 

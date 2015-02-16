@@ -24,7 +24,7 @@ module DTK
         @child_task   = value_hash['child_task'] || false
 
         if @if_success && @if_fail
-          Logger.warn "Unexpected case, both if/unless conditions have been set for command #{@command}(#{@command_type})"
+          Log.warn "Unexpected case, both if/unless conditions have been set for command #{@command}(#{@command_type})"
         end
       end
 
@@ -34,7 +34,7 @@ module DTK
       def start_task
         begin
           @process = POSIX::Spawn::Child.new(@command)
-          Logger.debug("Command started: '#{self.to_s}'")
+          Log.debug("Command started: '#{self.to_s}'")
         rescue Exception => e
           @error_message = e.message
         end

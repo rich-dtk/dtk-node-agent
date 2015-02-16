@@ -1,3 +1,4 @@
+require 'thread'
 require 'git'
 require 'fileutils'
 
@@ -31,9 +32,9 @@ module DTK
 
         unless File.directory?(folder_path)
           g_repo = Git.clone("#{git_url}", '', :path => folder_path, :branch => git_branch)
-          Logger.info("Positioner successfully cloned git repository '#{git_url}@#{git_branch}' to location '#{folder_path}'")
+          Log.info("Positioner successfully cloned git repository '#{git_url}@#{git_branch}' to location '#{folder_path}'")
         else
-          Logger.warn("Positioner detected folder '#{folder_path}' skipping git clone")
+          Log.warn("Positioner detected folder '#{folder_path}' skipping git clone")
         end
       end
 
@@ -42,7 +43,7 @@ module DTK
         file_content = position_info['source']['content']
         # write to file
         File.open(file_path, 'w') { |file| file.write(file_content) }
-        Logger.info("Positioner successfully created 'IN_PAYLOAD' file '#{file_path}'")
+        Log.info("Positioner successfully created 'IN_PAYLOAD' file '#{file_path}'")
       end
 
       def prepare_path(position_info)
