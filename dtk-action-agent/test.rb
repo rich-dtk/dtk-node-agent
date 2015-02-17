@@ -6,7 +6,7 @@ require 'active_support/core_ext/hash'
 
 @request_params = ActiveSupport::HashWithIndifferentAccess.new(
   {
-    :env_vars => { :HARIS => 'WORKS', :NESTO => 21 },
+    :env_vars2 => { :HARIS => 'WORKS', :NESTO => 21 },
     :execution_list => [
       {
         :type    => 'syscall',
@@ -18,7 +18,7 @@ require 'active_support/core_ext/hash'
         :command => '1date',
         :unless      => 'echo "Does not work!"'
       }],
-    :positioning => [{
+    :positioning2 => [{
         :type => 'file',
         :source => {
           :type => 'git',

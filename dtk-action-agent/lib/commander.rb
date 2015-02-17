@@ -63,6 +63,7 @@ module DTK
       ##
       # Sets environmental variables
       def self.set_environment_variables(env_vars_hash)
+        return unless env_vars_hash
         env_vars_hash.each do |k, v|
           ENV[k] = v.to_s.strip
           Log.debug("Environment variable set (#{k}: #{v})")

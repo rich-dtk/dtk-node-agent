@@ -10,6 +10,13 @@ module DTK
       def initialize(consumer_hash)
         @received_message = consumer_hash
         @process_pool     = []
+        @execution_list   = @received_message['execution_list']||[]
+
+        # no need to run other commands if there is no execution list
+        if @execution_list.empty?
+          Log.error "Execution list is not provided or empty, DTK Action Agent has nothing to run"
+          return
+        end
 
         # sets enviorment variables
         Commander.set_environment_variables(@received_message['env_vars'])
@@ -18,6 +25,8 @@ module DTK
       end
 
       def run
+        return { :results => [], :errors => Log.execution_errrors } if @execution_list.empty?
+
         # start positioning files
         @positioner.run()
 
@@ -25,7 +34,7 @@ module DTK
         @commander.run()
 
         # return results
-        { :output => @commander.results(), :errors => Log.execution_errrors }
+        { :results => @commander.results(), :errors => Log.execution_errrors }
       end
 
     end

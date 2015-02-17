@@ -9,7 +9,7 @@ module DTK
       attr_accessor :position_file_info
 
       def initialize(*position_file_info)
-        @position_file_info = position_file_info.flatten
+        @position_file_info = position_file_info.flatten.compact
       end
 
       def run()
