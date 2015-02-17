@@ -10,13 +10,13 @@ require 'active_support/core_ext/hash'
     :execution_list => [
       {
         :type    => 'syscall',
-        :command => 'd1ate',
+        :command => 'bash ~/test_script.sh 2>&1',
         :if      => 'echo works!'
       },
       {
         :type    => 'syscall',
         :command => '1date',
-        :unless      => 'echo "Does not works!"'
+        :unless      => 'echo "Does not work!"'
       }],
     :positioning => [{
         :type => 'file',
@@ -59,7 +59,7 @@ def test_inline
   ap results
 end
 
-test_command_line
+test_inline
 
 
 
