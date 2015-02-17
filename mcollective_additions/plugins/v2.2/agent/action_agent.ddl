@@ -4,6 +4,6 @@ metadata    :name        => "action agent",
             :license     => "",
             :version     => "",
             :url         => "",
-            :timeout     => 30
+            :timeout     => 180
 action "run_command", :description => "Run provided command on system" do
 end
