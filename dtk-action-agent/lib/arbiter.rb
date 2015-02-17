@@ -25,7 +25,7 @@ module DTK
         @commander.run()
 
         # return results
-        { :results => @commander.results(), :errors => Log.execution_errrors }
+        { :output => @commander.results(), :errors => Log.execution_errrors }
       end
 
     end
