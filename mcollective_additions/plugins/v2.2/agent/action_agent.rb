@@ -13,7 +13,7 @@ module MCollective
 
         # Log.info `/opt/puppet-omnibus/embedded/bin/dtk-action-agent '#{payload}'`
         result = `/opt/puppet-omnibus/embedded/bin/dtk-action-agent '#{payload}'`
-        reply[:data][:output] = JSON.parse(result)
+        reply[:data] = JSON.parse(result)
 
         reply[:pbuilderid] = Facts["pbuilderid"]
         reply[:status] = :ok
