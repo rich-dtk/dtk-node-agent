@@ -8,7 +8,7 @@ require File.expand_path('../../lib/commander', __FILE__)
 
 unless ARGV[0]
   error_msg = {
-    :error => 'You need to provide JSON with argument to method call'
+    :errors => ['You need to provide JSON with argument to method call']
   }
   print error_msg.to_json
 else
