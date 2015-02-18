@@ -10,16 +10,17 @@ module MCollective
         Log.info "Run command has been started with params: "
         Log.info payload
 
-        reply[:data] = {}
-
         # Log.info `/opt/puppet-omnibus/embedded/bin/dtk-action-agent '#{payload}'`
         result = `/opt/puppet-omnibus/embedded/bin/dtk-action-agent '#{payload}'`
 
-        reply[:data] = JSON.parse(result)
-        Log.info reply[:data]
+        json_result = JSON.parse(result)
+        reply[:results] = json_result['results']
+        reply[:errors]  = json_result['errors']
+
+        Log.info reply
         reply[:pbuilderid] = Facts["pbuilderid"]
 
-        if reply[:data]['errors'].empty?
+        if reply[:errors].empty?
           Log.info "DTK Action Agent has finished successfully sending proper response"
           reply[:status] = :ok
         else
@@ -28,7 +29,7 @@ module MCollective
           reply[:statuscode] = 1
 
           Log.error "DTK Action Agent has errors:"
-          reply[:data]['errors'].each { |a| Log.error a }
+          reply[:errors].each { |a| Log.error a }
         end
 
       end
