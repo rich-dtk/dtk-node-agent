@@ -1,4 +1,5 @@
 require 'json'
+require 'cgi'
 
 module MCollective
   module Agent
@@ -10,8 +11,9 @@ module MCollective
         Log.info "Run command has been started with params: "
         Log.info payload
 
-        # Log.info `/opt/puppet-omnibus/embedded/bin/dtk-action-agent '#{payload}'`
-        result = `/opt/puppet-omnibus/embedded/bin/dtk-action-agent '#{payload}'`
+        # we encode payload
+        encoded_payload = CGI.escape(payload)
+        result = `/opt/puppet-omnibus/embedded/bin/dtk-action-agent '#{encoded_payload}'`
 
         json_result = JSON.parse(result)
         reply[:results] = json_result['results']

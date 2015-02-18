@@ -2,6 +2,7 @@ require 'json'
 require 'ap'
 require 'active_support/hash_with_indifferent_access'
 require 'active_support/core_ext/hash'
+require 'cgi'
 
 
 @request_params = ActiveSupport::HashWithIndifferentAccess.new(
@@ -10,7 +11,8 @@ require 'active_support/core_ext/hash'
     :execution_list => [
       {
         :type    => 'syscall',
-        :command => 'bash ~/test_script.sh 2>&1',
+        #:command => 'bash ~/test_script.sh 2>&1',
+        :command => "script -qfc 'JAVA_HOME=\"/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.75.x86_64\" HADOOP_HOME=\"/usr/lib/hadoop\" HADOOP_CONF_DIR=\"/etc/hadoop/conf/\" /usr/local/maven/bin/mvn verify -f /etc/puppet/modules/action_module/dtk/bigtop_tests/bigtop-tests/test-execution/smokes/hadoop/pom.xml'",
         :if      => 'echo works!'
       },
       {
@@ -43,7 +45,7 @@ require 'active_support/core_ext/hash'
 
 def test_command_line
   transform_to_string = @request_params.to_json
-  print transform_to_string
+  transform_to_string = CGI.escape(transform_to_string)
   result =  `dtk-action-agent '#{transform_to_string}'`
   print result
 end
@@ -59,7 +61,7 @@ def test_inline
   ap results
 end
 
-test_inline
+test_command_line
 
 
 

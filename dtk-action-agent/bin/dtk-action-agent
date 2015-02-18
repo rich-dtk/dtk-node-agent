@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 require 'rubygems'
 require 'json'
+require 'cgi'
+
 require File.expand_path('../../lib/logger', __FILE__)
 require File.expand_path('../../lib/arbiter', __FILE__)
 require File.expand_path('../../lib/positioner', __FILE__)
@@ -12,7 +14,9 @@ unless ARGV[0]
   }
   print error_msg.to_json
 else
-  content = JSON.parse(ARGV[0])
+  json_cgi_string = ARGV[0]
+
+  content = JSON.parse(CGI.unescape(json_cgi_string))
   arbiter = DTK::Agent::Arbiter.new(content)
   results = arbiter.run()
 
