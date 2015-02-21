@@ -42,6 +42,8 @@ if [[ `command -v apt-get` ]]; then
 	dpkg --force-overwrite -i puppet-omnibus.deb
 	apt-get -y -f install
 	rm -rf puppet-omnibus.deb
+  # copy mcollective defaults file
+  cp ${base_dir}/src/etc/mcollective.default /etc/default/mcollective
 elif [[ `command -v yum` ]]; then
 	# install ruby and git
 	yum -y groupinstall "Development Tools"
@@ -55,6 +57,8 @@ elif [[ `command -v yum` ]]; then
 	fi;
 	yum -y --nogpgcheck localinstall puppet-omnibus.rpm
 	rm -rf puppet-omnibus.rpm
+  # copy mcollective defaults file
+  cp ${base_dir}/src/etc/mcollective.default /etc/sysconfig/mcollective
 else
 	echo "Unsuported OS for automatic agent installation. Exiting now..."
 	exit 1
