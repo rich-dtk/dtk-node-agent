@@ -72,6 +72,8 @@ module MCollective
               pull_err = trap_and_return_error do
                 pull_module(repo_dir,vc[:branch],opts)
               end
+              # move puppet subfolder content (if exists) to base module folder
+              move_submodule_to_base(repo_dir)
               # clean_and_clone set so if pull error then try again, this time cleaning dir and freshly cleaning
               clean_and_clone = !pull_err.nil?
             end
@@ -110,6 +112,25 @@ module MCollective
           error = e
         end
         error
+      end
+
+      def move_submodule_to_base(repo_dir)
+        all_paths = Dir["#{repo_dir}/*"]
+        folders   = all_paths.select{|p|File.directory?(p)}
+
+        files_to_delete   = all_paths.select{|p|File.file?(p)}
+        folders_to_delete = folders.select{|f| f != "#{repo_dir}/puppet"}
+
+        files     = Dir["#{repo_dir}/puppet/*"]
+        files_to_move = files.select{|p|File.file?(p)}
+        folders_to_move = files.select{|p|File.directory?(p)}
+
+        if folders.include?("#{repo_dir}/puppet")
+          git_repo = ::DTK::NodeAgent::GitClient.new(repo_dir)
+          git_repo.remove_files(files_to_delete)
+          git_repo.remove_folders(folders_to_delete)
+          git_repo.move_puppet_content_to_base(files_to_move, folders_to_move, repo_dir)
+        end
       end
 
       def pull_module(repo_dir,branch,opts={})
