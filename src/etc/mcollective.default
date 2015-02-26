@@ -1,0 +1,6 @@
+# MCollective defaults used by the init script
+export LC_ALL="en_US.UTF-8"
+
+# Unset Rubygems related environment variables set by RVM
+unset GEM_HOME
+unset GEM_PATH
