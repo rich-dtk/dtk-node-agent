@@ -30,45 +30,7 @@ module DTK
         end
       end
 
-      def move_puppet_content_to_base(files, folders, repo_dir)
-        files.each do |file|
-          file_name = file[/(\/\w*$)/,1]
-          git_command.mv(git_command_opts(), "--force", "#{file}", "#{repo_dir}/#{file_name}")
-        end
-
-        folders.each do |folder|
-          git_command.mv(git_command_opts(), "--force", "#{folder}", "#{repo_dir}/")
-          FileUtils.rmdir("#{folder}")
-        end
-      end
-
-      def remove_files(files)
-        files.each do |file|
-          git_command__rm(file)
-        end
-      end
-
-      def remove_folders(folders)
-        folders.each do |folder|
-          git_command__rm_r(folder)
-        end
-      end
-
     private
-      def git_command__mv(file, folder)
-        git_command().mv(git_command_opts(), "--force", "#{file}", "#{folder}/")
-      end
-
-      def git_command__rm(file_path)
-        git_command.rm(git_command_opts(), "--cached", file_path)
-        FileUtils.rm_f(file_path)
-      end
-
-      def git_command__rm_r(dir)
-        git_command.rm(git_command_opts(), "-r", "--cached", dir)
-        FileUtils.rm_rf(dir)
-      end
-
       def git_command__remote_add(remote_repo,branch,remote_name=nil)
         remote_name ||= default_remote()
         git_command().remote(git_command_opts(),"add","-t", branch, "-f", remote_name, remote_repo)
