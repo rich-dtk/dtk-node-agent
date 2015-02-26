@@ -134,25 +134,6 @@ module MCollective
         error
       end
 
-      def move_submodule_to_base(repo_dir)
-        all_paths = Dir["#{repo_dir}/*"]
-        folders   = all_paths.select{|p|File.directory?(p)}
-
-        files_to_delete   = all_paths.select{|p|File.file?(p)}
-        folders_to_delete = folders.select{|f| f != "#{repo_dir}/puppet"}
-
-        files     = Dir["#{repo_dir}/puppet/*"]
-        files_to_move = files.select{|p|File.file?(p)}
-        folders_to_move = files.select{|p|File.directory?(p)}
-
-        if folders.include?("#{repo_dir}/puppet")
-          git_repo = ::DTK::NodeAgent::GitClient.new(repo_dir)
-          git_repo.remove_files(files_to_delete)
-          git_repo.remove_folders(folders_to_delete)
-          git_repo.move_puppet_content_to_base(files_to_move, folders_to_move, repo_dir)
-        end
-      end
-
       def pull_module(repo_dir,branch,opts={})
         git_repo = ::DTK::NodeAgent::GitClient.new(repo_dir)
         git_repo.pull_and_checkout_branch?(branch,opts)
