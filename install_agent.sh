@@ -42,6 +42,8 @@ if [[ `command -v apt-get` ]]; then
 	dpkg --force-overwrite -i puppet-omnibus.deb
 	apt-get -y -f install
 	rm -rf puppet-omnibus.deb
+  # copy mcollective defaults file
+  cp ${base_dir}/src/etc/mcollective.default /etc/default/mcollective
 elif [[ `command -v yum` ]]; then
 	# install ruby and git
 	yum -y groupinstall "Development Tools"
@@ -55,6 +57,8 @@ elif [[ `command -v yum` ]]; then
 	fi;
 	yum -y --nogpgcheck localinstall puppet-omnibus.rpm
 	rm -rf puppet-omnibus.rpm
+  # copy mcollective defaults file
+  cp ${base_dir}/src/etc/mcollective.default /etc/sysconfig/mcollective
 else
 	echo "Unsuported OS for automatic agent installation. Exiting now..."
 	exit 1
@@ -70,7 +74,11 @@ gem uninstall -aIx puppet
 gem build ${base_dir}/dtk-node-agent.gemspec
 gem install posix-spawn -v 0.3.8 --no-rdoc --no-ri
 gem install ${base_dir}/dtk-node-agent*.gem --no-rdoc --no-ri
-
+# install the action agent
+cd ${base_dir}/dtk-action-agent
+gem build dtk-action-agent.gemspec
+gem install dtk-action-agent*.gem --no-rdoc --no-ri
+rm dtk-action-agent*.gem 
 # run the gem
 dtk-node-agent -d
 
@@ -85,9 +93,9 @@ ln -sf /opt/puppet-omnibus/embedded/bin/mcollectived /usr/sbin/mcollectived
 [[ ! -f /etc/logrotate.d/puppet ]] && cp ${base_dir}/src/etc/logrotate.d/puppet /etc/logrotate.d/puppet
 
 # remove root ssh files
-rm /root/.ssh/id_rsa
-rm /root/.ssh/id_rsa.pub 
-rm /root/.ssh/known_hosts
+rm -f /root/.ssh/id_rsa
+rm -f /root/.ssh/id_rsa.pub 
+rm -f /root/.ssh/known_hosts
 
 # remove mcollective and puppet logs
 rm -f /var/log/mcollective.log /var/log/puppet/*

@@ -9,7 +9,10 @@ module MCollective
       action "inject_agent" do
         begin
 
-          ret ||= Response.new() 
+          ret ||= Response.new()
+
+          # make sure default `service` command paths are set
+          ENV['PATH'] += ":/usr/sbin:/sbin"
 
           request[:agent_files].each do |k,v|
             if v == :deleted
@@ -24,7 +27,14 @@ module MCollective
           ret.set_status_succeeded!()
 
           t1 = Thread.new do
-            system("sudo /etc/init.d/mcollective restart")
+            sleep(2)
+            Log.instance.info "Initiating mcollective restart..."
+            system("#{service_command} restart")
+          end
+
+          def self.service_command
+            cmd = `which service`.chomp
+            cmd.empty? ? "/etc/init.d/mcollective" : "#{cmd} mcollective"
           end
 
           return ret

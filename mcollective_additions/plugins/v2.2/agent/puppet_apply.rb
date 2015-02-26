@@ -68,6 +68,23 @@ module MCollective
             opts.merge!(:sha => vc[:sha]) if vc[:sha]
 
             clean_and_clone = true
+            # DTK-1950 For Aldin
+            # move_submodule_to_base wuld need to be called if File.exists?("#{repo_dir}/.git")
+            # as well as when it is not; however just thought of easier way to do this
+            # rather than cloning for example into "#{ModulePath}/#{vc[:implementation]}"
+            # clone into something like "/usr/share/dtk/puppet-modules/#{vc[:implementation]}"
+            # suppose we have module DTKPuppetModulePath = "/usr/share/dtk/puppet-modules"
+            # first makesure that DTKPuppetModulePath directory is created and if not create it
+            # Think you can use logic below without move_submodule_to_base(repo_dir) where you replace ModulePath
+            # with DTKPuppetModulePath
+            # suppose also we have in code the assignment module_name = vc[:implementation]
+            # then at I think INSERT POINT 1 below (double check this); it might be one line below
+            # check if "#{DTKPuppetModulePath}/#{module_name}/puppet" exists and is a directory; if it does
+            # then soft link as follows
+            # then ln -s "#{DTKPuppetModulePath}/#{module_name}/puppet" "#{ModulePath}/#{module_name}"
+            # otehrwise soft link as follows
+            # then ln -s "#{DTKPuppetModulePath}/#{module_name}" "#{ModulePath}/#{module_name}"
+            # double check this, but think to be safe in case linked already then need to first delete link "#{ModulePath}/#{module_name}"
             if File.exists?("#{repo_dir}/.git")
               pull_err = trap_and_return_error do
                 pull_module(repo_dir,vc[:branch],opts)
@@ -89,6 +106,7 @@ module MCollective
                 raise e
               end
             end
+            # DTK-1950 For Aldin INSERT POINT 1
           end
           ret.set_status_succeeded!()
          rescue Exception => e
