@@ -8,8 +8,9 @@ require File.expand_path('dtk_node_agent_git_client',File.dirname(__FILE__))
 
 #TODO: move to be shared by agents
 PuppetApplyLogDir           = "/var/log/puppet"
-ModulePath                  =  "/etc/puppet/modules"
+ModulePath                  = "/etc/puppet/modules"
 DTKPuppetCacheBaseDir       = "/usr/share/dtk/tasks"
+DTKPuppetModulePath         = "/usr/share/dtk/puppet-modules"
 
 module MCollective
   module Agent
@@ -62,51 +63,52 @@ module MCollective
                 raise "version context does not have :#{field} field"
               end
             end
-            repo_dir = "#{ModulePath}/#{vc[:implementation]}"
-            remote_repo = "#{git_server}:#{vc[:repo]}"
+
+            FileUtils.mkdir_p(DTKPuppetModulePath) unless File.directory?(DTKPuppetModulePath)
+
+            module_name     = vc[:implementation]
+            puppet_repo_dir = "#{DTKPuppetModulePath}/#{module_name}"
+            repo_dir        = "#{ModulePath}/#{module_name}"
+            remote_repo     = "#{git_server}:#{vc[:repo]}"
+
             opts = Hash.new
             opts.merge!(:sha => vc[:sha]) if vc[:sha]
 
             clean_and_clone = true
-            # DTK-1950 For Aldin
-            # move_submodule_to_base wuld need to be called if File.exists?("#{repo_dir}/.git")
-            # as well as when it is not; however just thought of easier way to do this
-            # rather than cloning for example into "#{ModulePath}/#{vc[:implementation]}"
-            # clone into something like "/usr/share/dtk/puppet-modules/#{vc[:implementation]}"
-            # suppose we have module DTKPuppetModulePath = "/usr/share/dtk/puppet-modules"
-            # first makesure that DTKPuppetModulePath directory is created and if not create it
-            # Think you can use logic below without move_submodule_to_base(repo_dir) where you replace ModulePath
-            # with DTKPuppetModulePath
-            # suppose also we have in code the assignment module_name = vc[:implementation]
-            # then at I think INSERT POINT 1 below (double check this); it might be one line below
-            # check if "#{DTKPuppetModulePath}/#{module_name}/puppet" exists and is a directory; if it does
-            # then soft link as follows
-            # then ln -s "#{DTKPuppetModulePath}/#{module_name}/puppet" "#{ModulePath}/#{module_name}"
-            # otehrwise soft link as follows
-            # then ln -s "#{DTKPuppetModulePath}/#{module_name}" "#{ModulePath}/#{module_name}"
-            # double check this, but think to be safe in case linked already then need to first delete link "#{ModulePath}/#{module_name}"
-            if File.exists?("#{repo_dir}/.git")
+            if File.exists?("#{puppet_repo_dir}/.git")
               pull_err = trap_and_return_error do
-                pull_module(repo_dir,vc[:branch],opts)
+                pull_module(puppet_repo_dir, vc[:branch], opts)
               end
-              # move puppet subfolder content (if exists) to base module folder
-              move_submodule_to_base(repo_dir)
               # clean_and_clone set so if pull error then try again, this time cleaning dir and freshly cleaning
               clean_and_clone = !pull_err.nil?
             end
 
             if clean_and_clone
               begin
-                clean_and_clone_module(repo_dir,remote_repo,vc[:branch],opts)
+                clean_and_clone_module(puppet_repo_dir, remote_repo,vc[:branch], opts)
                rescue Exception => e
                 # TODO: not used now
                 error_backtrace = backtrace_subset(e)
                 # to achieve idempotent behavior; fully remove directory if any problems
-                FileUtils.rm_rf repo_dir
+                FileUtils.rm_rf puppet_repo_dir
                 raise e
               end
             end
-            # DTK-1950 For Aldin INSERT POINT 1
+
+            # remove symlink if exist already
+            if File.symlink?(repo_dir)
+              FileUtils.rm(repo_dir)
+            elsif File.directory?(repo_dir)
+              FileUtils.rm_r(repo_dir)
+            end
+
+            puppet_dir = "#{DTKPuppetModulePath}/#{module_name}/puppet"
+
+            if File.directory?(puppet_dir)
+              FileUtils.ln_sf(puppet_dir, repo_dir)
+            else
+              FileUtils.ln_sf("#{DTKPuppetModulePath}/#{module_name}", repo_dir)
+            end
           end
           ret.set_status_succeeded!()
          rescue Exception => e
