@@ -44,6 +44,12 @@ packer build template.json
 ```  
 This will also copy images to all AWS regions.  
 
+To get json output of new images, run following ruby script:
+```
+ruby get_amis.rb <AMI_TIMESTAMPS>
+```
+<AMI_TIMESTAMPS> can be one timestamp or array of timestamps separated with delimiter (,)
+
 License
 ----------------------
 DTK Node Agent is released under the GPLv3 license. Please see LICENSE for more details.
