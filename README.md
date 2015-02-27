@@ -44,7 +44,7 @@ packer build template.json
 ```  
 This will also copy images to all AWS regions.  
 
-To get json output of new images, run following ruby script:
+To get json output of new images, first, add .fog file on your home directory (with valid aws credentials) and then run following ruby script:
 ```
 ruby get_amis.rb <AMI_TIMESTAMPS>
 ```
