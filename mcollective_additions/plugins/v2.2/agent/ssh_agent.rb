@@ -79,7 +79,11 @@ module MCollective
       end
 
       def key_added?(system_user, pub_key)
-        results = `more /home/#{system_user}/.ssh/#{SSH_AUTH_KEYS_FILE_NAME} | grep #{pub_key}`
+        if system_user == "root"
+          results = `more /#{system_user}/.ssh/#{SSH_AUTH_KEYS_FILE_NAME} | grep #{pub_key}`
+        else
+          results = `more /home/#{system_user}/.ssh/#{SSH_AUTH_KEYS_FILE_NAME} | grep #{pub_key}`
+        end
         !results.empty?
       end
 
