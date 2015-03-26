@@ -14,13 +14,18 @@ list[:nodes_info] = Hash.new
 
 resolver = {
 	'saucy' => 'ubuntu',
-	'trusty' => 'ubuntu',
-	'precise' => 'ubuntu',
+  'trusty' => 'ubuntu',
+	'trusty_hvm' => 'ubuntu',
+  'precise' => 'ubuntu',
+	'precise_hvm' => 'ubuntu',
 	'lucid' => 'ubuntu',
-	'wheezy' => 'debian',
+  'wheezy' => 'debian',
+	'wheezy_hvm' => 'debian',
 	'centos64' => 'centos',
-	'centos6' => 'centos',
+  'centos6' => 'centos',
+	'centos6_hvm' => 'centos',
 	'rhel64' => 'redhat',
+  'rhel6_hvm' => 'redhat',
 	'rhel6' => 'redhat'
 }
 
@@ -28,9 +33,14 @@ regions.each do |region|
     fog = Fog::Compute.new({:provider => 'AWS', :region => region})
     fog.describe_images('Owner' => 'self').body["imagesSet"].each do |i|
       next unless ts_filter.any? { |w| i['name'] =~ /#{w}/ }
-    	i['name'] =~ /dtk\-agent\-([a-zA-Z0-9]*)\-([0-9]{10})/
+    	i['name'] =~ /dtk\-agent\-([a-zA-Z0-9_]*)\-([0-9]{10})/
         if $1 && !$2.strip.empty?
 	        raise "Missing mapping #{$1}  2: #{$2}" unless resolver[$1.downcase]
+          unless $1.include? 'hvm'
+            sizes = ["t1.micro","m1.small","m1.medium"] 
+          else 
+            sizes = ["t2.micro","t2.small","t2.medium"] 
+          end
 		    	list[:nodes_info].store(
 		    		i['imageId'],
 		    		{
@@ -39,7 +49,7 @@ regions.each do |region|
 		    			'os_type' => resolver[$1.downcase],
 		    			'display_name' => $1.capitalize,
 		    			'png' => "#{$1}.png",
-		    			'sizes' => ["t1.micro","m1.small","m1.medium"]
+		    			'sizes' => sizes
 		    		}
 		    	) 
         else
