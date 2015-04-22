@@ -75,6 +75,7 @@ gem build ${base_dir}/dtk-node-agent.gemspec
 gem install posix-spawn -v 0.3.8 --no-rdoc --no-ri
 gem install ${base_dir}/dtk-node-agent*.gem --no-rdoc --no-ri
 # install the action agent
+git clone https://github.com/rich-reactor8/dtk-action-agent ${base_dir}/dtk-action-agent
 cd ${base_dir}/dtk-action-agent
 gem build dtk-action-agent.gemspec
 gem install dtk-action-agent*.gem --no-rdoc --no-ri
