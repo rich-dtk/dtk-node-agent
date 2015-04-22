@@ -16,6 +16,22 @@
     "ami_name": "dtk-agent-precise-{{timestamp}}",
     "ami_groups": ["all"]
   },
+
+  {
+    "name": "precise_hvm",
+    "type": "amazon-ebs",
+    "access_key": "{{user `aws_access_key`}}",
+    "secret_key": "{{user `aws_secret_key`}}",
+    "region": "us-east-1",
+    "source_ami": "ami-94faa6fc",
+    "instance_type": "t2.micro",
+    "ssh_username": "ubuntu",
+
+    "ami_name": "dtk-agent-precise_hvm-{{timestamp}}",
+    "ami_groups": ["all"],
+    "vpc_id": "vpc-5a63bc3f",
+    "subnet_id": "subnet-af44b8d8"
+  },
   
   {
     "type": "amazon-ebs",
@@ -29,7 +45,23 @@
     "ami_regions": ["us-west-1", "us-west-2", "eu-west-1"],
     "ami_name": "dtk-agent-trusty-{{timestamp}}",
     "ami_groups": ["all"]
+  },  
+
+  {
+    "type": "amazon-ebs",
+    "name": "trusty_hvm",
+    "access_key": "{{user `aws_access_key`}}",
+    "secret_key": "{{user `aws_secret_key`}}",
+    "region": "us-east-1",
+    "source_ami": "ami-9a562df2",
+    "instance_type": "t2.micro",
+    "ssh_username": "ubuntu",
+    "ami_name": "dtk-agent-trusty_hvm-{{timestamp}}",
+    "ami_groups": ["all"],
+    "vpc_id": "vpc-5a63bc3f",
+    "subnet_id": "subnet-af44b8d8"
   },
+
   {
     "type": "amazon-ebs",
     "name": "wheezy",
@@ -44,6 +76,24 @@
     "ami_name": "dtk-agent-wheezy-{{timestamp}}",
     "ami_groups": ["all"]
   },
+
+  {
+    "type": "amazon-ebs",
+    "name": "wheezy_hvm",
+    "access_key": "{{user `aws_access_key`}}",
+    "secret_key": "{{user `aws_secret_key`}}",
+    "region": "us-east-1",
+    "source_ami": "ami-e0efab88",
+    "instance_type": "t2.micro",
+    "ssh_username": "admin",
+    "ssh_timeout": "4m",
+
+    "ami_name": "dtk-agent-wheezy_hvm-{{timestamp}}",
+    "ami_groups": ["all"],
+    "vpc_id": "vpc-5a63bc3f",
+    "subnet_id": "subnet-af44b8d8"
+  },
+  
   {
     "type": "amazon-ebs",
     "name": "rhel6",
@@ -58,6 +108,24 @@
     "ami_name": "dtk-agent-rhel6-{{timestamp}}",
     "ami_groups": ["all"]
   },
+
+  {
+    "type": "amazon-ebs",
+    "name": "rhel6_hvm",
+    "access_key": "{{user `aws_access_key`}}",
+    "secret_key": "{{user `aws_secret_key`}}",
+    "region": "us-east-1",
+    "source_ami": "ami-00a11e68",
+    "instance_type": "t2.micro",
+    "ssh_username": "ec2-user",
+    "ssh_timeout": "6m",
+
+    "ami_name": "dtk-agent-rhel6_hvm-{{timestamp}}",
+    "ami_groups": ["all"],
+    "vpc_id": "vpc-5a63bc3f",
+    "subnet_id": "subnet-af44b8d8"
+  },
+
   {
     "type": "amazon-ebs",
     "name": "centos6",
