@@ -62,7 +62,8 @@ module DTK
               when "5"
                 shell "rpm -ivh #{CONFIG[:puppetlabs_el5_rpm_repo]}"
                 @osarch == 'X86_64' ? (shell "rpm -ivh #{CONFIG[:rpm_forge_el5_X86_64_repo]}") : (shell "rpm -ivh #{CONFIG[:rpm_forge_el5_i686_repo]}")
-              when "6", "n/a"
+              # 20xx is the major release naming pattern of Amazon Linux
+              when "6", "n/a", "2015", "2014"
                 shell "rpm -ivh #{CONFIG[:puppetlabs_el6_rpm_repo]}"
                 @osarch == 'X86_64' ? (shell "rpm -ivh #{CONFIG[:rpm_forge_el6_X86_64_repo]}") : (shell "rpm -ivh #{CONFIG[:rpm_forge_el6_i686_repo]}")
                 shell "yum-config-manager --disable rpmforge-release"
