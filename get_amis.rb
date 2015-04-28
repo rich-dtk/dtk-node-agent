@@ -26,7 +26,8 @@ resolver = {
 	'centos6_hvm' => 'centos',
 	'rhel64' => 'redhat',
   'rhel6_hvm' => 'redhat',
-	'rhel6' => 'redhat'
+	'rhel6' => 'redhat',
+	'amazon' => 'redhat'
 }
 
 regions.each do |region|
