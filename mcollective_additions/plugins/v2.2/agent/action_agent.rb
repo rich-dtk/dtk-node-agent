@@ -19,7 +19,13 @@ module MCollective
         reply[:results] = json_result['results']
         reply[:errors]  = json_result['errors']
 
-        Log.info reply
+        Log.info "Results: "
+        Log.info reply[:results]
+
+        Log.info "Errors: "
+        Log.info reply[:results]
+
+
         reply[:pbuilderid] = Facts["pbuilderid"]
 
         if reply[:errors].empty?
