@@ -23,7 +23,7 @@ module MCollective
         Log.info reply[:results]
 
         Log.info "Errors: "
-        Log.info reply[:results]
+        Log.info reply[:errors]
 
 
         reply[:pbuilderid] = Facts["pbuilderid"]
