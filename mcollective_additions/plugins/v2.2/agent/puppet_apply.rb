@@ -40,7 +40,7 @@ module MCollective
         puppet_run_response = nil
         begin
           unless git_server = Facts["git-server"]
-            raise "git-server is not set in facts" 
+            raise "git-server is not set in facts"
           end
           response = pull_modules(request[:version_context],git_server)
           return set_reply!(response) if response.failed?()
@@ -69,7 +69,7 @@ module MCollective
             module_name     = vc[:implementation]
             puppet_repo_dir = "#{DTKPuppetModulePath}/#{module_name}"
             repo_dir        = "#{ModulePath}/#{module_name}"
-            remote_repo     = "#{git_server}:#{vc[:repo]}"
+            remote_repo     = git_repo_full_url(git_server, vc[:repo])
 
             opts = Hash.new
             opts.merge!(:sha => vc[:sha]) if vc[:sha]
@@ -120,7 +120,14 @@ module MCollective
           #git library sets these vars; so reseting here
           %w{GIT_DIR GIT_INDEX_FILE GIT_WORK_TREE}.each{|var|ENV[var]=nil}
         end
-        ret 
+        ret
+      end
+
+      #
+      # Keep in mind that if we are using default format of git url the name of repo is added after ':' symbol.
+      # When using ssh style URL repo name is added after '/'
+      def git_repo_full_url(git_url, repo_name)
+        "#{git_url}/#{repo_name}"
       end
 
       # returns a trapped error
@@ -152,7 +159,7 @@ module MCollective
         puppet_version = request[:puppet_version]
 
         if puppet_version
-          @log.info("Setting user provided puppet version '#{puppet_version}'") 
+          @log.info("Setting user provided puppet version '#{puppet_version}'")
           puppet_version = "_#{puppet_version}_"
         end
 
@@ -188,16 +195,16 @@ module MCollective
             manifest_path = dtk_puppet_cache.node_manifest_path(inter_node_stage,i+1)
             File.open(manifest_path,"w"){|f| f << execute_string}
 
-            cmd_line = 
+            cmd_line =
               [
-               "apply", 
-               "-l", log_file_path, 
-               "-d", 
+               "apply",
+               "-l", log_file_path,
+               "-d",
                "--report", "true", "--reports", "r8report",
                #"--storeconfigs_backend", "r8_storeconfig_backend",
                "-e", execute_string
               ]
-            cmd = "/usr/bin/puppet" 
+            cmd = "/usr/bin/puppet"
             save_stderr = $stderr
             stderr_capture = Tempfile.new("stderr")
             $stderr = stderr_capture
@@ -231,7 +238,7 @@ module MCollective
           else
             ret.set_status_failed!()
             error_info = {
-              :return_code => return_code            
+              :return_code => return_code
             }
             if runtime_errors = (report_info||{})[:errors]
               error_info[:errors] = runtime_errors.map{|e|e.merge(:type => "user_error")}
@@ -244,7 +251,7 @@ module MCollective
           ret.set_status_failed!()
           ret.merge!(error_info(e))
          ensure
-          # Amar: If puppet_apply thread was killed from puppet_cancel, ':is_canceled' flag is set on the thread, 
+          # Amar: If puppet_apply thread was killed from puppet_cancel, ':is_canceled' flag is set on the thread,
           # so puppet_apply can send status canceled in the response
           ret ||= Response.new()
           if Thread.current[:is_canceled]
@@ -263,14 +270,14 @@ module MCollective
               if err_message = compile_error_message?(return_code,stderr_msg,log_file_path)
                 ret[:errors] =  [{:message => err_message, :type => "user_error" }]
                 ret.set_status_failed!()
-                Puppet::err stderr_msg 
+                Puppet::err stderr_msg
                 Puppet::info "(end)"
               end
             end
           end
           Puppet::Util::Log.close_all()
         end
-        ret 
+        ret
       end
 
       def compile_error_message?(return_code,stderr_msg,log_file_path)
@@ -279,7 +286,7 @@ module MCollective
         elsif return_code != 0
           rest_reverse = Array.new
           error = nil
-          begin 
+          begin
             File.open(log_file_path).read.split("\n").reverse_each do |line|
               if line =~ /^.+Puppet \(err\):\s*(.+$)/
                 error = $1
@@ -288,7 +295,7 @@ module MCollective
                 rest_reverse << line
               end
             end
-           rescue 
+           rescue
           end
           ([error || 'Puppet catalog compile error'] + rest_reverse.reverse).join("\n")
         end
@@ -302,7 +309,7 @@ module MCollective
         log_error = ([e.inspect]+backtrace_subset(e)).join("\n")
         @log.info("\n----------------error-----\n#{log_error}\n----------------error-----")
       end
-      
+
       def error_info(e,backtrace=nil)
         {
           :error => {
@@ -312,7 +319,7 @@ module MCollective
         }
       end
 
-      #TODO: cleanup fn; need to fix on serevr side; inconsient use of symbol and string keys 
+      #TODO: cleanup fn; need to fix on serevr side; inconsient use of symbol and string keys
       #execute_lines
       def ret_execute_lines(cmps_with_attrs)
         ret = Array.new
@@ -328,7 +335,7 @@ module MCollective
             cmp = cmp_with_attrs["name"]
             raise "No component name" unless cmp
             if imp_stmt = needs_import_statement?(cmp,module_name)
-              ret << imp_stmt 
+              ret << imp_stmt
             end
 
             #TODO: see if need \" and quote form
@@ -380,7 +387,7 @@ module MCollective
         attrs.each do |attr_info|
           attr_name = attr_info["name"]
           val = attr_info["value"]
-          case attr_info["type"] 
+          case attr_info["type"]
            when "attribute"
             ret[attr_name] = val
           when "imported_collection"
@@ -404,7 +411,7 @@ module MCollective
         ret.empty? ? nil : ret
       end
 
-      
+
       def needs_import_statement?(cmp_or_def,module_name)
         return nil if cmp_or_def =~ /::/
         return nil if @import_statement_modules.include?(module_name)
@@ -477,8 +484,8 @@ module MCollective
 
       def dynamic_attr_response_el(cmp_name,dyn_attr)
         ret = nil
-        val = 
-          if dyn_attr[:type] == "exported_resource" 
+        val =
+          if dyn_attr[:type] == "exported_resource"
             dynamic_attr_response_el__exported_resource(cmp_name,dyn_attr)
           elsif dyn_attr[:type] == "default_variable"
             dynamic_attr_response_el__default_attribute(cmp_name,dyn_attr)
@@ -497,7 +504,7 @@ module MCollective
       end
 
       def dynamic_attr_response_el__exported_resource(cmp_name,dyn_attr)
-        ret = nil 
+        ret = nil
         if cmp_exp_rscs = exported_resources(cmp_name)
           cmp_exp_rscs.each do |title,val|
             return val if exp_rsc_match(title,dyn_attr[:title_with_vars])
@@ -517,7 +524,7 @@ module MCollective
 
       def regexp_string(title_with_vars)
         if title_with_vars.kind_of?(Array)
-          case title_with_vars.first 
+          case title_with_vars.first
           when "variable" then ".+"
           when "fn" then regexp_string__when_op(title_with_vars)
           else
@@ -544,7 +551,7 @@ module MCollective
         ret = nil
         attr_name = dyn_attr[:name]
         filepath = (exported_files(cmp_name)||{})[attr_name]
-        #TODO; legacy; remove when deprecate 
+        #TODO; legacy; remove when deprecate
         filepath ||= "/tmp/#{cmp_name.gsub(/::/,".")}.#{attr_name}"
         begin
           val = File.open(filepath){|f|f.read}.chomp
@@ -560,7 +567,7 @@ module MCollective
           @log.info("no exported varaibles for component #{cmp_name}")
           return ret
         end
-        
+
         attr_name = dyn_attr[:name]
         unless cmp_exp_vars.has_key?(attr_name)
           @log.info("no exported variable entry for component #{cmp_name}, attribute #{dyn_attr[:name]})")
@@ -615,7 +622,7 @@ module MCollective
       DynamicVarDefNameRN = capitalize_resource_name(DynamicVarDefName)
 
       def quote_form(obj)
-        if obj.kind_of?(Hash) 
+        if obj.kind_of?(Hash)
           "{#{obj.map{|k,v|"#{quote_form(k)} => #{quote_form(v)}"}.join(",")}}"
         elsif obj.kind_of?(Array)
           "[#{obj.map{|el|quote_form(el)}.join(",")}]"
@@ -683,7 +690,7 @@ module MCollective
         def base_dir()
           @base_dir ||= mkdir_p(BaseDir)
         end
-        
+
         def mkdir_p(dir_path)
           FileUtils.mkdir_p(dir_path)
           dir_path
@@ -697,7 +704,7 @@ module MCollective
           self.merge!(hash)
           self[:status] = :unknown unless hash.has_key?(:status)
         end
-        
+
         def to_hash()
           Hash.new.merge(self)
         end
@@ -731,7 +738,7 @@ module MCollective
       end
     end
   end
-  
+
   class Report
     def self.set_status(status)
       Thread.current[:report_status] = status.to_sym
@@ -748,11 +755,11 @@ module MCollective
   end
 end
 
-#below is more complicated to allow reloading 
+#below is more complicated to allow reloading
 if Puppet::Reports.constants.include?('R8report')
   Puppet::Reports.send(:remove_const,:R8report)
 end
-#TODO: needed to pass {:overwrite => true} to Puppet::Reports.genmodule so expanded def Puppet::Reports.register_report(:r8report) 
+#TODO: needed to pass {:overwrite => true} to Puppet::Reports.genmodule so expanded def Puppet::Reports.register_report(:r8report)
 def register_report(name,&block)
   name = name.intern
   mod = Puppet::Reports.genmodule(name, :overwrite=> true,:extend => Puppet::Util::Docs, :hash => Puppet::Reports.instance_hash(:report), :block => block)
