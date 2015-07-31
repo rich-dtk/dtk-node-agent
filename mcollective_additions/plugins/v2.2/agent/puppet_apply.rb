@@ -94,6 +94,7 @@ module MCollective
                 # to achieve idempotent behavior; fully remove directory if any problems
                 FileUtils.rm_rf puppet_repo_dir
                 unless (tries -= 1).zero?
+                  @log.info("Re-trying last command becuase of error: #{e.message}, retries left: #{tries}")
                   sleep(1)
                   retry
                 end
