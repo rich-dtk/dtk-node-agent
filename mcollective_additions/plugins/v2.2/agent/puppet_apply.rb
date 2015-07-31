@@ -15,6 +15,9 @@ DTKPuppetModulePath         = "/usr/share/dtk/puppet-modules"
 module MCollective
   module Agent
     class Puppet_apply < RPC::Agent
+
+      NUMBER_OF_RETRIES = 3
+
       def initialize()
         super()
         @log = Log.instance
@@ -85,12 +88,14 @@ module MCollective
 
             if clean_and_clone
               begin
+                tries ||= NUMBER_OF_RETRIES
                 clean_and_clone_module(puppet_repo_dir, remote_repo,vc[:branch], opts)
                rescue Exception => e
-                # TODO: not used now
-                error_backtrace = backtrace_subset(e)
                 # to achieve idempotent behavior; fully remove directory if any problems
                 FileUtils.rm_rf puppet_repo_dir
+                retry unless (tries -= 1).zero?
+                # TODO: not used now
+                error_backtrace = backtrace_subset(e)
                 raise e
               end
             end
