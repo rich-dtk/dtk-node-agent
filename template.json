@@ -128,21 +128,6 @@
 
   {
     "type": "amazon-ebs",
-    "name": "centos6",
-    "access_key": "{{user `aws_access_key`}}",
-    "secret_key": "{{user `aws_secret_key`}}",
-    "region": "us-east-1",
-    "source_ami": "ami-eb6b0182",
-    "instance_type": "t1.micro",
-    "ssh_username": "root",
-    "ssh_timeout": "6m",
-    "ami_regions": ["us-west-1", "us-west-2", "eu-west-1"],
-    "ami_name": "dtk-agent-centos6-{{timestamp}}",
-    "ami_users": ["649294524699","538952812576"]
-  },
-
-  {
-    "type": "amazon-ebs",
     "name": "amazon",
     "access_key": "{{user `aws_access_key`}}",
     "secret_key": "{{user `aws_secret_key`}}",
