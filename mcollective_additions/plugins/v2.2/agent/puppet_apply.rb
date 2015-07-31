@@ -16,7 +16,7 @@ module MCollective
   module Agent
     class Puppet_apply < RPC::Agent
 
-      NUMBER_OF_RETRIES = 3
+      NUMBER_OF_RETRIES = 5
 
       def initialize()
         super()
@@ -93,7 +93,10 @@ module MCollective
                rescue Exception => e
                 # to achieve idempotent behavior; fully remove directory if any problems
                 FileUtils.rm_rf puppet_repo_dir
-                retry unless (tries -= 1).zero?
+                unless (tries -= 1).zero?
+                  sleep(1)
+                  retry
+                end
                 # TODO: not used now
                 error_backtrace = backtrace_subset(e)
                 raise e
