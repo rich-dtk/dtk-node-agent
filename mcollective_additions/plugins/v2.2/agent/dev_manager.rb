@@ -1,11 +1,16 @@
 require 'base64'
+require 'grit'
+require 'tmpdir'
 
 module MCollective
   module Agent
     class Dev_manager < RPC::Agent
 
       AGENT_MCOLLECTIVE_LOCATION = "#{::MCollective::Config.instance.libdir.join}/mcollective/agent/"
- 
+      DTK_AA_BRANCH   = 'stable'
+      DTK_AA_URL      = 'https://github.com/rich-reactor8/dtk-action-agent.git'
+      DTK_AA_TEMP_DIR = File.join(Dir.tmpdir(), 'dtk-action-agent')
+
       action "inject_agent" do
         begin
 
@@ -24,7 +29,25 @@ module MCollective
               file << content
             end
           end
+
           ret.set_status_succeeded!()
+
+          # DTK Action Agent Sync
+          Log.instance.info("Started DTK Action Agent sync, temp dir '#{DTK_AA_TEMP_DIR}'")
+          cmd_opts = { :timeout => 60 }
+
+          clone_args = [DTK_AA_URL, DTK_AA_TEMP_DIR]
+          clone_args += ["-b", DTK_AA_BRANCH]
+          ::Grit::Git.new('').clone(cmd_opts, *clone_args)
+          Log.instance.info("Cloned latest code from branch '#{DTK_AA_BRANCH}' for DTK Action Agent.")
+
+          output = `cd #{dtk_action_agent_dir} && gem build dtk-action-agent.gemspec && gem install dtk-action-agent-*.gem --no-ri --no-rdoc`
+          result = $?
+          if result.success?
+            Log.instance.info("DTK Action Agent has been successfully update from branch '#{DTK_AA_BRANCH}'")
+          else
+            Log.instance.error("DTK Action Agent could not be updated, reason: #{output}")
+          end
 
           t1 = Thread.new do
             sleep(2)
@@ -45,6 +68,7 @@ module MCollective
           error_info = { :error => { :message => "Error syncing agents: #{e}" } }
           ret.merge!(error_info)
         end
+
         return ret
       end
     end
