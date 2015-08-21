@@ -7,8 +7,6 @@ module MCollective
     class Dev_manager < RPC::Agent
 
       AGENT_MCOLLECTIVE_LOCATION = "#{::MCollective::Config.instance.libdir.join}/mcollective/agent/"
-      DTK_AA_BRANCH   = 'stable'
-      DTK_AA_URL      = 'https://github.com/rich-reactor8/dtk-action-agent.git'
       DTK_AA_TEMP_DIR = File.join(Dir.tmpdir(), 'dtk-action-agent')
 
       action "inject_agent" do
@@ -19,7 +17,7 @@ module MCollective
           # make sure default `service` command paths are set
           ENV['PATH'] += ":/usr/sbin:/sbin"
 
-          request[:agent_files].each do |k,v|
+          (request[:agent_files]||[]).each do |k,v|
             if v == :deleted
               File.delete("#{AGENT_MCOLLECTIVE_LOCATION}#{k}")
               next
@@ -32,19 +30,22 @@ module MCollective
 
           ret.set_status_succeeded!()
 
+          dkt_aa_url    = request[:action_agent_remote_url]
+          dkt_aa_branch = request[:action_agent_branch]
+
           # DTK Action Agent Sync
           Log.instance.info("Started DTK Action Agent sync, temp dir '#{DTK_AA_TEMP_DIR}'")
           cmd_opts = { :timeout => 60 }
 
-          clone_args = [DTK_AA_URL, DTK_AA_TEMP_DIR]
-          clone_args += ["-b", DTK_AA_BRANCH]
+          clone_args = [dtk_aa_url, DTK_AA_TEMP_DIR]
+          clone_args += ["-b", dtk_aa_branch]
           ::Grit::Git.new('').clone(cmd_opts, *clone_args)
-          Log.instance.info("Cloned latest code from branch '#{DTK_AA_BRANCH}' for DTK Action Agent.")
+          Log.instance.info("Cloned latest code from branch '#{dtk_aa_branch}' for DTK Action Agent.")
 
-          output = `cd #{dtk_action_agent_dir} && gem build dtk-action-agent.gemspec && gem install dtk-action-agent-*.gem --no-ri --no-rdoc`
+          output = `cd #{DTK_AA_TEMP_DIR} && gem build dtk-action-agent.gemspec && gem install dtk-action-agent-*.gem --no-ri --no-rdoc`
           result = $?
           if result.success?
-            Log.instance.info("DTK Action Agent has been successfully update from branch '#{DTK_AA_BRANCH}'")
+            Log.instance.info("DTK Action Agent has been successfully update from branch '#{dtk_aa_branch}'")
           else
             Log.instance.error("DTK Action Agent could not be updated, reason: #{output}")
           end
