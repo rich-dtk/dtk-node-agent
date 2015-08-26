@@ -30,8 +30,8 @@ module MCollective
 
           ret.set_status_succeeded!()
 
-          dkt_aa_url    = request[:action_agent_remote_url]
-          dkt_aa_branch = request[:action_agent_branch]
+          dtk_aa_url    = request[:action_agent_remote_url]
+          dtk_aa_branch = request[:action_agent_branch]
 
           # DTK Action Agent Sync
           Log.instance.info("Started DTK Action Agent sync, temp dir '#{DTK_AA_TEMP_DIR}'")
