@@ -4,6 +4,7 @@ require 'puppet'
 require 'grit'
 require 'tempfile'
 require 'fileutils'
+require 'etc'
 require File.expand_path('dtk_node_agent_git_client',File.dirname(__FILE__))
 
 #TODO: move to be shared by agents
@@ -11,6 +12,8 @@ PuppetApplyLogDir           = "/var/log/puppet"
 ModulePath                  = "/etc/puppet/modules"
 DTKPuppetCacheBaseDir       = "/usr/share/dtk/tasks"
 DTKPuppetModulePath         = "/usr/share/dtk/puppet-modules"
+# make sure HOME variable is set correctly
+ENV['HOME'] = Etc.getpwuid.dir
 
 module MCollective
   module Agent
