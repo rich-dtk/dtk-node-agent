@@ -26,7 +26,7 @@
     "source_ami": "ami-c15bebaa",
     "instance_type": "t2.micro",
     "ssh_username": "ubuntu",
-
+    "ami_regions": ["us-west-1", "us-west-2", "eu-west-1"],
     "ami_name": "dtk-agent-precise_hvm-{{timestamp}}",
     "ami_groups": ["all"],
     "vpc_id": "vpc-5a63bc3f",
@@ -56,6 +56,7 @@
     "source_ami": "ami-2dcf7b46",
     "instance_type": "t2.micro",
     "ssh_username": "ubuntu",
+    "ami_regions": ["us-west-1", "us-west-2", "eu-west-1"],
     "ami_name": "dtk-agent-trusty_hvm-{{timestamp}}",
     "ami_groups": ["all"],
     "vpc_id": "vpc-5a63bc3f",
@@ -87,7 +88,7 @@
     "instance_type": "t2.micro",
     "ssh_username": "admin",
     "ssh_timeout": "4m",
-
+    
     "ami_name": "dtk-agent-wheezy_hvm-{{timestamp}}",
     "ami_groups": ["all"],
     "vpc_id": "vpc-5a63bc3f",
@@ -119,7 +120,7 @@
     "instance_type": "t2.micro",
     "ssh_username": "ec2-user",
     "ssh_timeout": "6m",
-
+    "ami_regions": ["us-west-1", "us-west-2", "eu-west-1"],
     "ami_name": "dtk-agent-rhel6_hvm-{{timestamp}}",
     "ami_groups": ["all"],
     "vpc_id": "vpc-5a63bc3f",
