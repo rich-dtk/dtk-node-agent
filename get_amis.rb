@@ -38,7 +38,7 @@ regions.each do |region|
         if $1 && !$2.strip.empty?
 	        raise "Missing mapping #{$1}  2: #{$2}" unless resolver[$1.downcase]
           unless $1.include? 'hvm'
-            sizes = ["t1.micro","m1.small","m1.medium"] 
+            sizes = ["t1.micro","m1.small","m3.medium"] 
           else 
             sizes = ["t2.micro","t2.small","t2.medium"] 
           end
