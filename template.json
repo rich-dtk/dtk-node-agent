@@ -129,6 +129,24 @@
 
   {
     "type": "amazon-ebs",
+    "name": "amazon_hvm",
+    "access_key": "{{user `aws_access_key`}}",
+    "secret_key": "{{user `aws_secret_key`}}",
+    "region": "us-east-1",
+    "source_ami": "ami-e3106686",
+    "instance_type": "t2.micro",
+    "ssh_username": "ec2-user",
+    "ssh_timeout": "6m",
+    "ami_regions": ["us-west-1", "us-west-2", "eu-west-1"],
+    "ami_name": "dtk-agent-amazon_hvm-{{timestamp}}",
+    "ami_groups": ["all"],
+    "ssh_pty": true,
+    "vpc_id": "vpc-5a63bc3f",
+    "subnet_id": "subnet-af44b8d8"
+  },
+
+  {
+    "type": "amazon-ebs",
     "name": "amazon",
     "access_key": "{{user `aws_access_key`}}",
     "secret_key": "{{user `aws_secret_key`}}",

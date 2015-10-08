@@ -27,7 +27,8 @@ resolver = {
 	'rhel64' => 'redhat',
   'rhel6_hvm' => 'redhat',
 	'rhel6' => 'redhat',
-	'amazon' => 'amazon-linux'
+	'amazon' => 'amazon-linux',
+	'amazon_hvm' => 'amazon-linux'
 }
 
 regions.each do |region|
