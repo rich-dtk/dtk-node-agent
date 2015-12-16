@@ -3,6 +3,7 @@ metadata    :name        => "action agent",
             :author      => "Reactor8",
             :license     => "",
             :version     => "",
-            :url         => ""
+            :url         => "",
+            :timeout     => 0
 action "run_command", :description => "Run provided command on system" do
 end
