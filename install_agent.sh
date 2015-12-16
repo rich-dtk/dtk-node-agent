@@ -29,6 +29,10 @@ if [[ `command -v apt-get` ]]; then
 		yes | sudo add-apt-repository ppa:git-core/ppa
 		apt-get update
 		wget "http://dtk-storage.s3.amazonaws.com/puppet-omnibus_3.6.2%2Bfpm0_amd64.deb" -O puppet-omnibus.deb
+    # install backported kernel for docker if on 12.04
+    if [[ ${release} == '12.04' ]]; then
+      apt-get -y install linux-image-generic-lts-trusty
+    fi
 	elif [[ ${osname} == 'Debian' ]]; then
 		wget "http://dtk-storage.s3.amazonaws.com/puppet-omnibus_3.6.2%2Bfpm0_amd64.debian.deb" -O puppet-omnibus.deb
 	fi
@@ -92,6 +96,9 @@ ln -sf /opt/puppet-omnibus/embedded/bin/mcollectived /usr/sbin/mcollectived
 # copy puppet and mcollective logrotate files
 [[ ! -f /etc/logrotate.d/mcollective ]] && cp ${base_dir}/src/etc/logrotate.d/mcollective /etc/logrotate.d/mcollective
 [[ ! -f /etc/logrotate.d/puppet ]] && cp ${base_dir}/src/etc/logrotate.d/puppet /etc/logrotate.d/puppet
+
+# install docker
+curl -sSL https://get.docker.com/ | sh
 
 # remove root ssh files
 rm -f /root/.ssh/id_rsa

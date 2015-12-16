@@ -96,6 +96,8 @@ module DTK
             puts "Installing additions for MCollective and Puppet..."
             install_additions
 
+            puts "Installing DTK Arbiter"
+            install_arbiter
           end       
 
 
@@ -186,6 +188,13 @@ module DTK
             end
           end
 
+          def self.install_arbiter
+            shell "git clone -b stable https://github.com/dtk/dtk-arbiter /usr/share/dtk/dtk-arbiter"
+            Dir.chdir "/usr/share/dtk/dtk-arbiter"
+            shell "bundle install --without development"
+            FileUtils.ln_sf("/usr/share/dtk/dtk-arbiter/etc/#{@osfamily}.dtk-arbiter.init", "/etc/init.d/dtk-arbiter")
+            set_init("dtk-arbiter")
+          end
     end
   end
 end

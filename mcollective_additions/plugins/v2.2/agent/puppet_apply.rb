@@ -4,6 +4,7 @@ require 'puppet'
 require 'grit'
 require 'tempfile'
 require 'fileutils'
+require 'etc'
 require File.expand_path('dtk_node_agent_git_client',File.dirname(__FILE__))
 
 #TODO: move to be shared by agents
@@ -11,10 +12,15 @@ PuppetApplyLogDir           = "/var/log/puppet"
 ModulePath                  = "/etc/puppet/modules"
 DTKPuppetCacheBaseDir       = "/usr/share/dtk/tasks"
 DTKPuppetModulePath         = "/usr/share/dtk/puppet-modules"
+# make sure HOME variable is set correctly
+ENV['HOME'] = Etc.getpwuid.dir
 
 module MCollective
   module Agent
     class Puppet_apply < RPC::Agent
+
+      NUMBER_OF_RETRIES = 5
+
       def initialize()
         super()
         @log = Log.instance
@@ -85,12 +91,18 @@ module MCollective
 
             if clean_and_clone
               begin
+                tries ||= NUMBER_OF_RETRIES
                 clean_and_clone_module(puppet_repo_dir, remote_repo,vc[:branch], opts)
                rescue Exception => e
-                # TODO: not used now
-                error_backtrace = backtrace_subset(e)
                 # to achieve idempotent behavior; fully remove directory if any problems
                 FileUtils.rm_rf puppet_repo_dir
+                unless (tries -= 1).zero?
+                  @log.info("Re-trying last command becuase of error: #{e.message}, retries left: #{tries}")
+                  sleep(1)
+                  retry
+                end
+                # TODO: not used now
+                error_backtrace = backtrace_subset(e)
                 raise e
               end
             end
