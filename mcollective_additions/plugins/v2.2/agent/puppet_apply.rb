@@ -289,6 +289,8 @@ module MCollective
           end
           Puppet::Util::Log.close_all()
         end
+        @log.info("Debuging response from mcollective (RESPONSE):")
+        @log.info(ret)
         ret
       end
 
