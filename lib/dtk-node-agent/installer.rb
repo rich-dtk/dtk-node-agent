@@ -46,9 +46,6 @@ module DTK
               shell "dpkg -i #{logstash_forwarder_package}"
               shell "apt-get update"
               shell "rm puppetlabs-release-#{@distcodename}.deb #{logstash_forwarder_package}"
-              # install mcollective
-              puts "Installing MCollective..."
-              shell "apt-get -y install mcollective"
               # pin down the puppetlabs apt repo
               FileUtils.cp("#{base_dir}/src/etc/apt/preferences.d/puppetlabs", "/etc/apt/preferences.d/puppetlabs")
             elsif @osfamily == 'redhat'
@@ -74,8 +71,6 @@ module DTK
                 puts "#{@osname} #{@osmajrelease} is not supported. Exiting now..."
                 exit(1)
               end
-              puts "Installing MCollective..."
-              shell "yum -y install mcollective"
               shell "yum -y install git"
               # install ec2-run-user-data init script
               # but only if the machine is running on AWS
@@ -93,7 +88,7 @@ module DTK
               exit(1)
             end
 
-            puts "Installing additions for MCollective and Puppet..."
+            puts "Installing additions Puppet..."
             install_additions
 
             puts "Installing DTK Arbiter"
@@ -154,24 +149,12 @@ module DTK
             # create necessary dirs
             [   '/var/log/puppet/',
               '/var/lib/puppet/lib/puppet/indirector',
-              '/etc/puppet/modules',
-              '/usr/share/mcollective/plugins/mcollective'
+              '/etc/puppet/modules'
               ].map! { |p| FileUtils.mkdir_p(p) unless File.directory?(p) }
             # copy puppet libs
             FileUtils.cp_r(Dir.glob("#{base_dir}/puppet_additions/puppet_lib_base/puppet/indirector/*"), "/var/lib/puppet/lib/puppet/indirector/")
             # copy r8 puppet module
             FileUtils.cp_r(Dir.glob("#{base_dir}/puppet_additions/modules/r8"), "/etc/puppet/modules")
-            # copy mcollective plugins
-            FileUtils.cp_r(Dir.glob("/usr/libexec/mcollective/mcollective/*"), "/usr/share/mcollective/plugins/mcollective") if File.directory?("/usr/libexec/mcollective/")        
-            mco_add_dir = "#{base_dir}/mcollective_additions"
-            mco_plugin_dir = "#{mco_add_dir}/plugins/v#{CONFIG[:mcollective_version]}"
-            FileUtils.cp_r(Dir.glob("#{mco_plugin_dir}/*"), "/usr/share/mcollective/plugins/mcollective")
-            # copy mcollective config
-            FileUtils.cp_r("#{mco_add_dir}/server.cfg", "/etc/mcollective", :remove_destination => true)
-            # copy compatible mcollective init script
-            FileUtils.cp_r("#{mco_add_dir}/#{@osfamily}.mcollective.init", "/etc/init.d/mcollective", :remove_destination => true)
-            FileUtils.cp_r("#{mco_add_dir}/#{@osfamily}.mcollective.service", "/usr/lib/systemd/system/mcollective.service", :remove_destination => true) if File.exist?("/usr/lib/systemd/system/mcollective.service")
-            set_init("mcollective")
           end
 
           def self.base_dir
@@ -192,8 +175,12 @@ module DTK
             shell "git clone -b stable https://github.com/dtk/dtk-arbiter /usr/share/dtk/dtk-arbiter"
             Dir.chdir "/usr/share/dtk/dtk-arbiter"
             shell "bundle install --without development"
+            puts "Installing dtk-arbiter init script"
             FileUtils.ln_sf("/usr/share/dtk/dtk-arbiter/etc/#{@osfamily}.dtk-arbiter.init", "/etc/init.d/dtk-arbiter")
             set_init("dtk-arbiter")
+            puts "Installing dtk-arbiter monit config."
+            monit_cfg_path = (@osfamily == 'debian') ? "/etc/monit/conf.d" : "/etc/monit.d"
+            FileUtils.ln_sf("/usr/share/dtk/dtk-arbiter/etc/dtk-arbiter.monit", "#{monit_cfg_path}/dtk-arbiter")            
           end
     end
   end
