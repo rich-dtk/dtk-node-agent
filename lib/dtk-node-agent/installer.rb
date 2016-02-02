@@ -50,11 +50,6 @@ module DTK
               FileUtils.cp("#{base_dir}/src/etc/apt/preferences.d/puppetlabs", "/etc/apt/preferences.d/puppetlabs")
             elsif @osfamily == 'redhat'
               shell "yum -y install yum-utils wget curl"
-              # install upgrades
-              Array(CONFIG[:upgrades][:redhat]).each do |package|
-                shell "yum -y install #{package}"
-                shell "yum -y update #{package}"
-              end
               case @osmajrelease
               when "5"
                 shell "rpm -ivh #{CONFIG[:puppetlabs_el5_rpm_repo]}"
@@ -72,6 +67,11 @@ module DTK
                 exit(1)
               end
               shell "yum -y install git"
+              # install upgrades
+              Array(CONFIG[:upgrades][:redhat]).each do |package|
+                shell "yum -y install #{package}"
+                shell "yum -y update #{package}"
+              end
               # install ec2-run-user-data init script
               # but only if the machine is running on AWS
               if `curl -m 5 -sI http://169.254.169.254/latest/meta-data/`.include? '200 OK'
@@ -180,6 +180,7 @@ module DTK
             set_init("dtk-arbiter")
             puts "Installing dtk-arbiter monit config."
             monit_cfg_path = (@osfamily == 'debian') ? "/etc/monit/conf.d" : "/etc/monit.d"
+            set_init("monit")
             FileUtils.ln_sf("/usr/share/dtk/dtk-arbiter/etc/dtk-arbiter.monit", "#{monit_cfg_path}/dtk-arbiter")            
           end
     end
