@@ -55,7 +55,8 @@ elif [[ `command -v yum` ]]; then
 	if [[ ${release:0:1} == 5 ]]; then
 		wget http://dtk-storage.s3.amazonaws.com/puppet-omnibus-3.3.2.fpm0-1.x86_64.el5.rpm -O puppet-omnibus.rpm
 	elif [[ ${release:0:1} == 6 ]] || [[ ${release:0:1} == 7 ]] || [[ ${osname} == 'Amazon' ]];then
-		wget http://dtk-storage.s3.amazonaws.com/puppet-omnibus-3.6.2.fpm0-1.x86_64.el6.rpm -O puppet-omnibus.rpm
+    # use curl here as a workaround for wget segmentation fault on amazon-linux
+		curl http://dtk-storage.s3.amazonaws.com/puppet-omnibus-3.6.2.fpm0-1.x86_64.el6.rpm -o puppet-omnibus.rpm
 	fi;
 	yum -y --nogpgcheck localinstall puppet-omnibus.rpm
 	rm -rf puppet-omnibus.rpm
